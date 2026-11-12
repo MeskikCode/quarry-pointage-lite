@@ -18,6 +18,9 @@ updates:
       - dependency-name: xlsx
       # Pinned to the version the MeskikCode design system specifies.
       - dependency-name: lucide-react
+      # The types follow the Node.js version the project runs on (24, see .nvmrc).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

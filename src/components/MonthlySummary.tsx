@@ -1,7 +1,7 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { CalendarRange, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarRange, ChevronLeft, ChevronRight, HandCoins, Plus } from "lucide-react";
 import { useMemo } from "react";
 import { db } from "@/lib/db";
 import { postName } from "@/lib/export";
@@ -11,37 +11,53 @@ import { summariseMonth } from "@/lib/summary";
 import type { StoredEmployee } from "@/lib/types";
 import { IconButton } from "./ui/Button";
 import { Alert, Badge } from "./ui/Feedback";
+import { cn } from "./ui/cn";
 
 interface Props {
   month: string;
   onMonthChange: (month: string) => void;
   employees: StoredEmployee[];
+  /** Open the advances of one employee. */
+  onAdvances: (employeeId: number) => void;
 }
 
+/** A minus sign, not a hyphen: it reads as a deduction. */
+const deduction = (amount: number) => `−${formatNumber(amount, 2)}`;
+
 /**
- * The month at a glance, per employee: days worked, absences, overtime and
- * the pay due. This is what the owner or the accountant reads; the Excel
- * export carries the same figures in more detail.
+ * The month at a glance, per employee: days worked, absences, overtime,
+ * advances and what is left to pay. This is what the owner or the accountant
+ * reads; the Excel export carries the same figures in more detail.
  */
-export function MonthlySummary({ month, onMonthChange, employees }: Props) {
+export function MonthlySummary({ month, onMonthChange, employees, onAdvances }: Props) {
   const { t } = useI18n();
 
   const records = useLiveQuery(
     () => db.attendance.where("date").between(`${month}-01`, `${month}-31`, true, true).toArray(),
     [month],
   );
-
-  const rows = useMemo(() => summariseMonth(employees, records ?? [], month), [employees, records, month]);
-
-  const totals = useMemo(
-    () => ({
-      pay: rows.reduce((sum, row) => sum + row.estimatedPay, 0),
-      days: rows.reduce((sum, row) => sum + row.daysWorked, 0),
-      absences: rows.reduce((sum, row) => sum + row.absentUnjustified + row.absentSick + row.absentAuthorised, 0),
-      overtime: rows.reduce((sum, row) => sum + row.overtimeHours, 0),
-    }),
-    [rows],
+  const advances = useLiveQuery(
+    () => db.advances.where("date").between(`${month}-01`, `${month}-31`, true, true).toArray(),
+    [month],
   );
+
+  const rows = useMemo(
+    () => summariseMonth(employees, records ?? [], month, advances ?? []),
+    [employees, records, advances, month],
+  );
+
+  const totals = useMemo(() => {
+    const sum = (pick: (row: (typeof rows)[number]) => number) =>
+      Math.round(rows.reduce((total, row) => total + pick(row), 0) * 100) / 100;
+    return {
+      balance: sum((row) => row.balance),
+      gross: sum((row) => row.estimatedPay),
+      advances: sum((row) => row.advances),
+      days: sum((row) => row.daysWorked),
+      absences: sum((row) => row.absentUnjustified + row.absentSick + row.absentAuthorised),
+      overtime: sum((row) => row.overtimeHours),
+    };
+  }, [rows]);
 
   return (
     <section aria-label={t.month.title} className="flex flex-col gap-4">
@@ -76,9 +92,19 @@ export function MonthlySummary({ month, onMonthChange, employees }: Props) {
         {/* An amount and its currency always read left to right; in Arabic the
             line is still aligned to the reading edge. */}
         <p className="mt-1 flex items-baseline gap-2 rtl:justify-end" dir="ltr" data-testid="month-total">
-          <span className="num text-3xl leading-tight font-bold text-white">{formatNumber(totals.pay, 2)}</span>
+          <span className={cn("num text-3xl leading-tight font-bold", totals.balance < 0 ? "text-danger" : "text-white")}>
+            {formatNumber(totals.balance, 2)}
+          </span>
           <span className="num text-md font-medium text-muted">MAD</span>
         </p>
+        <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-line pt-3">
+          <Stat label={t.month.gross} value={formatNumber(totals.gross, 2)} testId="month-gross" />
+          <Stat
+            label={t.month.advances}
+            value={totals.advances > 0 ? deduction(totals.advances) : formatNumber(0, 2)}
+            testId="month-advances"
+          />
+        </dl>
         <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3">
           <Stat label={t.sheet.daysWorked} value={formatDays(totals.days)} />
           <Stat label={t.month.absences} value={formatNumber(totals.absences)} />
@@ -110,9 +136,19 @@ export function MonthlySummary({ month, onMonthChange, employees }: Props) {
                   </div>
                   <p className="shrink-0 text-end" data-pay>
                     <span className="caps block text-2xs font-bold text-muted">{t.month.pay}</span>
-                    <span className="num text-lg leading-tight font-bold text-accent">
-                      {formatNumber(row.estimatedPay, 2)}
+                    <span
+                      className={cn(
+                        "num text-lg leading-tight font-bold",
+                        row.balance < 0 ? "text-danger" : "text-accent",
+                      )}
+                    >
+                      {formatNumber(row.balance, 2)}
                     </span>
+                    {row.advances > 0 ? (
+                      <span className="num block text-2xs text-muted">
+                        {t.month.gross} {formatNumber(row.estimatedPay, 2)}
+                      </span>
+                    ) : null}
                   </p>
                 </header>
                 <dl className="grid grid-cols-3 gap-2 border-t border-line pt-2.5">
@@ -120,6 +156,27 @@ export function MonthlySummary({ month, onMonthChange, employees }: Props) {
                   <Stat label={t.month.absences} value={formatNumber(absences)} />
                   <Stat label={t.overtime.label} value={`${formatNumber(row.overtimeHours)} ${t.overtime.unit}`} />
                 </dl>
+                <button
+                  type="button"
+                  data-advances-open={row.fullName}
+                  aria-label={`${t.advance.title} — ${row.fullName}`}
+                  onClick={() => onAdvances(row.employeeId)}
+                  className="press flex min-h-12 w-full items-center justify-between gap-3 rounded-control border-2 border-tile-line bg-tile px-3 text-start hover:border-accent focus-visible:shadow-focus"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <HandCoins size={18} aria-hidden className="shrink-0 text-accent" />
+                    <span className="caps text-xs font-bold text-muted">{t.advance.title}</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      data-advance-amount
+                      className={cn("num text-md font-bold", row.advances > 0 ? "text-white" : "text-muted")}
+                    >
+                      {row.advances > 0 ? deduction(row.advances) : formatNumber(0, 2)}
+                    </span>
+                    <Plus size={18} aria-hidden className="shrink-0 text-accent" />
+                  </span>
+                </button>
               </article>
             </li>
           );
@@ -131,11 +188,13 @@ export function MonthlySummary({ month, onMonthChange, employees }: Props) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div className="flex h-full min-w-0 flex-col justify-between gap-0.5">
       <dt className="caps text-2xs leading-tight font-bold text-muted">{label}</dt>
-      <dd className="num text-start text-md font-bold text-white">{value}</dd>
+      <dd className="num text-start text-md font-bold text-white" data-testid={testId}>
+        {value}
+      </dd>
     </div>
   );
 }

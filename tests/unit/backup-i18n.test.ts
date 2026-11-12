@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vitest";
+import { addAdvance } from "@/lib/advances";
 import { setStatus } from "@/lib/attendance";
 import {
   BACKUP_APP,
@@ -25,6 +26,8 @@ describe("backup and restore", () => {
     await setStatus(source, { employeeId: 1, date: "2026-11-11", shift: "jour" }, "present");
     await setStatus(source, { employeeId: 2, date: "2026-11-11", shift: "nuit" }, "absent");
     await source.employees.update(3, { active: false });
+    await addAdvance(source, { employeeId: 1, date: "2026-11-05", amount: 500, note: "Réparation" });
+    await addAdvance(source, { employeeId: 2, date: "2026-11-09", amount: 120.5 });
 
     const text = JSON.stringify(await createBackup(source));
     const backup = parseBackup(text);
@@ -38,6 +41,8 @@ describe("backup and restore", () => {
     expect(await target.employees.toArray()).toEqual(await source.employees.toArray());
     const strip = (rows: { id?: number }[]) => rows.map((row) => ({ ...row, id: undefined }));
     expect(strip(await target.attendance.toArray())).toEqual(strip(await source.attendance.toArray()));
+    expect(strip(await target.advances.toArray())).toEqual(strip(await source.advances.toArray()));
+    expect(await target.advances.count()).toBe(2);
   });
 
   it("replaces existing data rather than merging", async () => {
@@ -47,10 +52,12 @@ describe("backup and restore", () => {
     const target = await freshDb();
     await target.employees.add({ fullName: "Extra", post: "ouvrier", payType: "daily", rate: 1, overtimeRate: 0, active: true });
     await setStatus(target, { employeeId: 1, date: "2026-01-01", shift: "jour" }, "present");
+    await addAdvance(target, { employeeId: 1, date: "2026-01-02", amount: 50 });
     await restoreBackup(target, backup);
 
     expect(await target.employees.count()).toBe(backup.employees.length);
     expect(await target.attendance.count()).toBe(0);
+    expect(await target.advances.count()).toBe(0);
   });
 
   const valid = () => ({
@@ -63,10 +70,32 @@ describe("backup and restore", () => {
     attendance: [
       { employeeId: 1, date: "2026-11-11", shift: "jour", status: "present", reason: "none", overtimeHours: 1 },
     ],
+    advances: [{ employeeId: 1, date: "2026-11-11", amount: 250, note: "Réparation" }],
   });
 
   it("accepts a well-formed file", () => {
-    expect(parseBackup(JSON.stringify(valid())).attendance).toHaveLength(1);
+    const backup = parseBackup(JSON.stringify(valid()));
+    expect(backup.attendance).toHaveLength(1);
+    expect(backup.advances).toEqual([{ employeeId: 1, date: "2026-11-11", amount: 250, note: "Réparation" }]);
+  });
+
+  it("still accepts a version 1 file, which has no advances", () => {
+    const { advances: _advances, ...old } = valid();
+    void _advances;
+    const backup = parseBackup(JSON.stringify({ ...old, version: 1 }));
+    expect(backup.version).toBe(BACKUP_VERSION);
+    expect(backup.advances).toEqual([]);
+    expect(backup.employees).toHaveLength(1);
+  });
+
+  it("restores a version 1 file into a database that has advances, clearing them", async () => {
+    const { advances: _advances, ...old } = valid();
+    void _advances;
+    const target = await freshDb();
+    await addAdvance(target, { employeeId: 1, date: "2026-11-02", amount: 100 });
+    await restoreBackup(target, parseBackup(JSON.stringify({ ...old, version: 1 })));
+    expect(await target.advances.count()).toBe(0);
+    expect(await target.employees.count()).toBe(1);
   });
 
   it.each([
@@ -83,6 +112,15 @@ describe("backup and restore", () => {
     ["an impossible date", JSON.stringify({ ...valid(), attendance: [{ ...valid().attendance[0], date: "2026-02-30" }] })],
     ["an unknown status", JSON.stringify({ ...valid(), attendance: [{ ...valid().attendance[0], status: "holiday" }] })],
     ["a duplicate record", JSON.stringify({ ...valid(), attendance: [valid().attendance[0], valid().attendance[0]] })],
+    ["a version 2 file without advances", JSON.stringify({ ...valid(), advances: undefined })],
+    ["advances that are not a list", JSON.stringify({ ...valid(), advances: "none" })],
+    ["an advance for an unknown worker", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], employeeId: 9 }] })],
+    ["an advance with an impossible date", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], date: "2026-13-01" }] })],
+    ["an advance of zero", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], amount: 0 }] })],
+    ["a negative advance", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], amount: -5 }] })],
+    ["an advance that is not a number", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], amount: "250" }] })],
+    ["an absurdly large advance", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], amount: 5_000_000 }] })],
+    ["an advance note that is too long", JSON.stringify({ ...valid(), advances: [{ ...valid().advances[0], note: "x".repeat(81) }] })],
   ])("refuses %s", (_label, text) => {
     expect(() => parseBackup(text)).toThrow(BackupError);
   });

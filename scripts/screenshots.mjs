@@ -41,6 +41,24 @@ async function open(options, lang) {
   return { context, page };
 }
 
+
+/** In the month view: two advances for the first employee, then close the dialog. */
+async function addSampleAdvances(page, shot) {
+  await page.locator("[data-advances-open]").first().click();
+  const dialog = page.getByRole("dialog");
+  const samples = [["1000", "Réparation voiture"], ["500", ""]];
+  for (const [index, [amount, note]] of samples.entries()) {
+    await dialog.locator("[name=amount]").fill(amount);
+    await dialog.locator("[name=note]").fill(note);
+    await dialog.locator("button[type=submit]").click();
+    // Wait for the advance to be listed before typing the next one.
+    await dialog.locator("[data-advance]").nth(index).waitFor();
+  }
+  if (shot) await page.screenshot({ path: shot });
+  await dialog.locator("footer button").click();
+  await dialog.waitFor({ state: "hidden" });
+}
+
 const phone = { ...devices["Pixel 7"] };
 
 for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
@@ -80,6 +98,7 @@ for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
   await page.locator('[data-view="month"]').click();
   await page.getByTestId("month-total").waitFor();
   await page.evaluate(() => document.fonts.ready);
+  await addSampleAdvances(page, join(OUT, "phone-advances.png"));
   await page.screenshot({ path: join(OUT, "phone-month.png") });
   await context.close();
 }
@@ -88,6 +107,7 @@ for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
   const { context, page } = await open({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 }, "fr");
   await page.locator('[data-view="month"]').click();
   await page.getByTestId("month-total").waitFor();
+  await addSampleAdvances(page);
   await page.screenshot({ path: join(OUT, "desktop-month.png") });
   await context.close();
 }

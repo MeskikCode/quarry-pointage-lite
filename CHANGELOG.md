@@ -15,13 +15,14 @@ First public release.
 - Staff model of a crushing and sand-washing site: eleven posts in five teams, with a free title for any other post.
 - Two pay types. Monthly: the salary is due for the month and overtime is payable. Daily: paid per day worked, overtime paid only when an hourly rate is set.
 - Employee management on the device: add, edit, deactivate and reactivate, with history kept.
-- Monthly Excel export: a summary sheet with pay computed by pay type, and a detail sheet.
-- Backup of the whole database to a file, and restore with full validation of the file.
+- Advances (avances): entered per employee with a date and a note, listed and deletable (with confirmation), and deducted from what is left to pay in the month summary. A negative balance shows in red.
+- Monthly Excel export in three sheets (summary with pay, advances and balance; attendance detail; advances), formatted for the accountant: title, frozen and styled header, real numbers and dates, totals row, landscape printing, right to left in Arabic.
+- Backup of the whole database to a file, and restore with full validation of the file. Backup files written before advances existed are still accepted.
 - Installable PWA that precaches the whole application and cold-boots with no network. Update prompt when a new version is ready.
 - Five languages: Tamazight (Tifinagh), Arabic (right to left), French, English, Spanish. The Tamazight strings are a draft awaiting review by a native reader.
 - Mobile-first layout, checked from 320 to 1920px in every language.
 - MeskikCode design system (MUBCS) in its field theme, with self-hosted fonts.
-- 75 unit tests and 66 end-to-end tests; continuous integration and GitHub Pages deployment workflows.
+- 133 unit tests and 76 end-to-end tests; continuous integration and GitHub Pages deployment workflows.
 
 ### Changed from the original blueprint
 

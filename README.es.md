@@ -32,7 +32,8 @@ Es un producto pequeño y completo, publicado en abierto como ejemplo de cómo t
 - **Dos formas de pago**, como en el terreno:
   - *Mensual*: con contrato. El salario se debe por el mes aunque falten días, y las horas extra se pagan.
   - *Por día*: se paga por día trabajado. Las horas extra solo se pagan si se indica una tarifa por hora.
-- **Exportación mensual a Excel.** Una hoja de resumen por empleado y una hoja de detalle. Es una ayuda para preparar la nómina, no una declaración a la CNSS.
+- **Anticipos.** El dinero entregado antes del día de pago se anota por empleado, con fecha y nota, y se descuenta de lo pendiente de pago. Un saldo negativo aparece en rojo.
+- **Exportación mensual a Excel, lista para el contable.** Tres hojas: un resumen por empleado (días trabajados, ausencias, horas extra, salario base, paga estimada, anticipos, pendiente de pago), todos los fichajes y todos los anticipos. Con título, encabezado fijo, números y fechas reales, fila de totales e impresión apaisada. Es una ayuda para preparar la nómina, no una declaración a la CNSS.
 - **Copia de seguridad y restauración.** Los datos solo existen en el dispositivo: toda la base se guarda en un archivo y se restaura desde él.
 - **Cinco idiomas**: tamazight (tifinagh), árabe (de derecha a izquierda), francés, inglés y español.
 - **Instalable y totalmente sin conexión.** Tras la primera visita arranca sin ninguna red.
@@ -69,7 +70,7 @@ Esta edición abierta es reducida a propósito. Se desarrollan para clientes, co
 
 - la sincronización entre varios teléfonos y un panel en la oficina cuando vuelve la red;
 - el enlace entre turnos, tiques de báscula y tonelaje producido;
-- la nómina completa: retenciones, anticipos y recibos de salario impresos.
+- la nómina completa: retenciones, préstamos a varios meses y recibos de salario impresos.
 
 ## Proyectos a medida
 

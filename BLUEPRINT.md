@@ -26,10 +26,10 @@ Crushing sites are hard on software:
 - **Styling:** Tailwind CSS over the MeskikCode design system tokens: high contrast, large touch targets
 - **Offline database:** Dexie (IndexedDB) with `dexie-react-hooks`
 - **Service worker:** Serwist, precaching the whole application for offline cold boots
-- **Export:** SheetJS for the monthly Excel file
+- **Export:** a spreadsheet library for the monthly Excel file
 - **Icons:** `lucide-react`
 
-**As built:** the service worker is bundled by a small build script (`scripts/build-sw.mjs`) using the Serwist runtime, rather than through the `@serwist/next` plugin. A static export has no server for the plugin to hook into, and the script writes the precache list from the files actually produced.
+**As built:** the export uses `write-excel-file` rather than SheetJS, whose free edition cannot style cells or freeze rows; the accountant's file needed both. The service worker is bundled by a small build script (`scripts/build-sw.mjs`) using the Serwist runtime, rather than through the `@serwist/next` plugin. A static export has no server for the plugin to hook into, and the script writes the precache list from the files actually produced.
 
 ## 3. Structure
 
@@ -89,9 +89,9 @@ Full detail: [docs/data-model.md](docs/data-model.md).
 2. **Filter by team.** Management, technical, drivers, workers, guards.
 3. **One-tap attendance.** Present, half day or late are logged at once. Absent reveals three reasons: unjustified, sick, authorised.
 4. **Overtime.** A stepper, one hour at a time.
-5. **Excel export.** At month end, one file with a summary per employee and the detail of every record.
+5. **Excel export.** At month end, one file with a summary per employee, the detail of every record, and every advance.
 
-**As built, added:** backup and restore of the whole database to a file, since the device holds the only copy.
+**As built, added:** a month summary in the application; advances (*avances*) per employee, deducted from what is left to pay; and backup and restore of the whole database to a file, since the device holds the only copy.
 
 ## 6. Milestones
 
@@ -115,4 +115,4 @@ This repository is the open edition. Client deployments by MeskikCode extend the
 
 - **Background sync** to a central database when connectivity returns.
 - **Weighbridge integration**, linking shifts to weighing tickets (*bons de pesée*) and tonnage.
-- **Payroll**: Moroccan social security and tax deductions, advances, printable pay slips (*bulletins de paie*).
+- **Payroll**: Moroccan social security and tax deductions, loans repaid over several months, printable pay slips (*bulletins de paie*).

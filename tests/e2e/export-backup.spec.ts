@@ -26,9 +26,10 @@ test("exports the month to Excel with pay computed by pay type", async ({ page }
   await expect(dialog.getByText("Fichier généré.")).toBeVisible();
 
   const workbook = XLSX.read(readFileSync(await file.path()));
-  expect(workbook.SheetNames).toEqual(["Récapitulatif", "Détail"]);
+  expect(workbook.SheetNames).toEqual(["Récapitulatif", "Détail", "Avances"]);
 
-  const summary = XLSX.utils.sheet_to_json<Record<string, string | number>>(workbook.Sheets["Récapitulatif"]);
+  // The table starts on row 3, under a title and a note.
+  const summary = XLSX.utils.sheet_to_json<Record<string, string | number>>(workbook.Sheets["Récapitulatif"], { range: 2 });
   const row = (name: string) => summary.find((r) => r["Nom complet"] === name)!;
 
   // Monthly: the salary, plus 2 h at 25 MAD.
@@ -47,7 +48,7 @@ test("exports the month to Excel with pay computed by pay type", async ({ page }
   // Fifteen employees and the total line.
   expect(summary).toHaveLength(16);
 
-  const detail = XLSX.utils.sheet_to_json(workbook.Sheets["Détail"]);
+  const detail = XLSX.utils.sheet_to_json(workbook.Sheets["Détail"], { range: 2 });
   expect(detail).toHaveLength(3);
 });
 
@@ -72,8 +73,10 @@ test("backs the data up to a file and restores it", async ({ page }) => {
   expect(file.suggestedFilename()).toMatch(/^quarry-pointage-lite-backup-\d{4}-\d{2}-\d{2}\.json$/);
   const path = await file.path();
   const backup = JSON.parse(readFileSync(path, "utf8"));
+  expect(backup.version).toBe(2);
   expect(backup.employees).toHaveLength(15);
   expect(backup.attendance).toHaveLength(1);
+  expect(backup.advances).toEqual([]);
   await dialog.getByRole("button", { name: "Fermer" }).first().click();
 
   // Change the data, then restore the file.

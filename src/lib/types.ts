@@ -92,6 +92,26 @@ export interface AttendanceRecord {
 export type StoredEmployee = Employee & { id: number };
 export type StoredAttendance = AttendanceRecord & { id: number };
 
+/** Largest advance accepted in one entry, in MAD. A guard against typing errors. */
+export const MAX_ADVANCE = 1_000_000;
+
+/**
+ * An advance (avance): money handed to an employee before pay day, deducted
+ * from what is due at the end of the month. It belongs to the month of its
+ * date.
+ */
+export interface Advance {
+  id?: number;
+  employeeId: number;
+  /** Local calendar date, `YYYY-MM-DD`. */
+  date: string;
+  /** MAD, always above zero, at most two decimals. */
+  amount: number;
+  note?: string;
+}
+
+export type StoredAdvance = Advance & { id: number };
+
 export function teamOf(post: Post): Team {
   return POSTS[post].team;
 }

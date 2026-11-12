@@ -26,4 +26,4 @@ You will receive an answer within three working days. Once a fix is released, th
 
 ## Dependencies
 
-Dependencies are pinned to exact versions, and `npm audit` reports no known vulnerability at release. The spreadsheet library is installed from its publisher's own distribution (`cdn.sheetjs.com`), as the copy on the npm registry is no longer updated.
+Dependencies are pinned to exact versions, and `npm audit` reports no known vulnerability at release. SheetJS is used only by the tests, to read generated files back; it is installed from its publisher's own distribution (`cdn.sheetjs.com`), as the copy on the npm registry is no longer updated, and it is not part of the application.

@@ -57,6 +57,14 @@ for (const width of WIDTHS) {
     await page.locator("[data-view=month]").click();
     await page.getByTestId("month-total").waitFor();
     for (const issue of await inspect()) found.push(`[month] ${issue}`);
+    // The advances dialog, with an advance in it so that the list is on screen.
+    await page.locator("[data-advances-open]").first().click();
+    await page.getByRole("dialog").locator("[name=amount]").fill("1500");
+    await page.getByRole("dialog").locator("[name=note]").fill("Réparation");
+    await page.getByRole("dialog").locator("button[type=submit]").click();
+    await page.getByRole("dialog").locator("[data-advance]").waitFor();
+    await page.getByRole("dialog").getByRole("button").filter({ has: page.locator("svg.lucide-trash-2") }).first().click();
+    for (const issue of await inspect()) found.push(`[advances] ${issue}`);
 
     for (const issue of found) {
       problems += 1;

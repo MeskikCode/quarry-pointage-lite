@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { AttendanceRecord, Employee } from "./types";
+import type { Advance, AttendanceRecord, Employee } from "./types";
 
 /**
  * Local database. Everything the application knows lives here, on the
@@ -12,6 +12,7 @@ import type { AttendanceRecord, Employee } from "./types";
 export class PointageDB extends Dexie {
   employees!: EntityTable<Employee, "id">;
   attendance!: EntityTable<AttendanceRecord, "id">;
+  advances!: EntityTable<Advance, "id">;
 
   constructor(name = "quarry-pointage-lite") {
     super(name);
@@ -20,6 +21,12 @@ export class PointageDB extends Dexie {
       employees: "++id, post, payType, active",
       // One record per worker, date and shift: the compound index is unique.
       attendance: "++id, &[employeeId+date+shift], date, employeeId",
+    });
+
+    // Version 2 adds advances. The other tables are carried over unchanged,
+    // and a device already in use upgrades in place the next time it opens.
+    this.version(2).stores({
+      advances: "++id, employeeId, date",
     });
 
     this.on("populate", (tx) => {

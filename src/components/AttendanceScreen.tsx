@@ -31,6 +31,7 @@ import { countShift } from "@/lib/summary";
 import { POST_KEYS, SHIFTS, TEAMS, teamOf, type Post, type Shift, type StoredEmployee, type Team } from "@/lib/types";
 import { useOnline } from "@/lib/useOnline";
 import { AttendanceCard } from "./AttendanceCard";
+import { AdvanceDialog } from "./AdvanceDialog";
 import { BackupDialog } from "./BackupDialog";
 import { EmployeeModal } from "./EmployeeModal";
 import { ExportDialog } from "./ExportDialog";
@@ -67,6 +68,7 @@ type Panel =
   | { kind: "language" }
   | { kind: "export" }
   | { kind: "backup" }
+  | { kind: "advance"; employee: StoredEmployee }
   | { kind: "employee"; employee: StoredEmployee | null };
 
 const SEGMENT_ON = "border-accent bg-accent-soft text-accent";
@@ -287,7 +289,15 @@ export function AttendanceScreen() {
 
         {view === "month" ? (
           <>
-            <MonthlySummary month={month} onMonthChange={setMonth} employees={employees ?? []} />
+            <MonthlySummary
+              month={month}
+              onMonthChange={setMonth}
+              employees={employees ?? []}
+              onAdvances={(employeeId) => {
+                const employee = employees?.find((e) => e.id === employeeId);
+                if (employee) setPanel({ kind: "advance", employee });
+              }}
+            />
             {actionBar}
           </>
         ) : null}
@@ -513,6 +523,9 @@ export function AttendanceScreen() {
       <LanguageDialog open={panel.kind === "language"} onClose={closePanel} />
       {panel.kind === "export" ? <ExportDialog initialMonth={view === "month" ? month : monthOf(date)} onClose={closePanel} /> : null}
       {panel.kind === "backup" ? <BackupDialog onClose={closePanel} /> : null}
+      {panel.kind === "advance" ? (
+        <AdvanceDialog key={panel.employee.id} employee={panel.employee} month={month} onClose={closePanel} />
+      ) : null}
       {panel.kind === "employee" ? (
         <EmployeeModal
           key={panel.employee?.id ?? "new"}

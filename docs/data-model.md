@@ -57,6 +57,22 @@ Indexes: `++id, &[employeeId+date+shift], date, employeeId`. The compound index 
 
 Dates are local calendar days, not UTC instants: a night shift recorded at 23:30 belongs to the day the supervisor sees on the screen.
 
+## Table `advances`
+
+An advance (*avance*) is money handed to an employee before pay day.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | number, auto-increment | |
+| `employeeId` | number | References `employees.id` |
+| `date` | string | Local calendar day, `YYYY-MM-DD`. The advance belongs to the month of this date |
+| `amount` | number | MAD, above zero, at most 1 000 000, rounded to cents |
+| `note` | string, optional | Up to 80 characters |
+
+Indexes: `++id, employeeId, date`. Added in version 2 of the database.
+
+An employee may have any number of advances in a month. Rules and validation are in `src/lib/advances.ts`.
+
 ## Pay rules
 
 Implemented in `computePay` and `summariseMonth` (`src/lib/summary.ts`).
@@ -69,21 +85,26 @@ daily staff:    base pay = days worked x daily wage
 
 overtime pay  = overtime hours x the employee's overtime rate
 estimated pay = base pay + overtime pay
+
+advances      = sum of the advances dated in the month
+left to pay   = estimated pay - advances
 ```
+
+Advances do not change what was earned; they change what is still owed. The balance can be negative, when more was advanced than is due: it is shown in red and left for the supervisor to settle. Nothing is carried into the next month automatically.
 
 - **Monthly** staff are under contract. The salary is due for the month even when some days are missed; absences are reported in the export, not deducted. Overtime is payable.
 - **Daily** staff are paid for the days they worked. Their overtime is often not paid: it is only when an overtime rate above zero is entered for that employee.
-- A deactivated employee who has records in the month still appears in that month's export. A deactivated employee with none does not.
+- A deactivated employee who has records or an advance in the month still appears in that month's summary and export. A deactivated employee with neither does not.
 
-The result is labelled *estimated*. It is gross pay before any deduction, advance or bonus. It is a preparation aid for the accountant, not a pay slip and not a CNSS declaration.
+The result is labelled *estimated*. It is gross pay before any deduction other than the advances entered. It is a preparation aid for the accountant, not a pay slip and not a CNSS declaration.
 
 ## Migrations
 
-The schema is declared as `this.version(1).stores({...})`. To change it:
+The schema is declared in numbered blocks, `this.version(n).stores({...})`, in `src/lib/db.ts`. Version 1 has employees and attendance; version 2 adds advances. To change it:
 
-1. Add a new block, `this.version(2).stores({...}).upgrade(tx => ...)`, below the existing one. Never edit a published version.
-2. Bump `BACKUP_VERSION` in `src/lib/backup.ts` if the shape of stored objects changed, and make `parseBackup` accept and convert the previous version.
-3. Add a unit test that opens a version 1 database and reads it after the upgrade.
+1. Add a new block below the existing ones, with `.upgrade(tx => ...)` if existing rows must be converted. Never edit a published version.
+2. Bump `BACKUP_VERSION` in `src/lib/backup.ts` if the shape of stored objects changed, and make `parseBackup` accept and convert the previous versions.
+3. Add a unit test that creates a database of the previous version and reads it after the upgrade (see "upgrading a device from version 1" in `tests/unit/advances.test.ts`).
 
 Devices in the field upgrade in place the next time the application opens.
 
@@ -94,13 +115,16 @@ Devices in the field upgrade in place the next time the application opens.
 ```json
 {
   "app": "quarry-pointage-lite",
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-11-12T08:30:00.000Z",
   "employees": [{ "id": 1, "fullName": "…", "post": "ouvrier", "payType": "daily", "rate": 100, "overtimeRate": 0, "active": true }],
-  "attendance": [{ "employeeId": 1, "date": "2026-11-12", "shift": "jour", "status": "present", "reason": "none", "overtimeHours": 0 }]
+  "attendance": [{ "employeeId": 1, "date": "2026-11-12", "shift": "jour", "status": "present", "reason": "none", "overtimeHours": 0 }],
+  "advances": [{ "employeeId": 1, "date": "2026-11-10", "amount": 200, "note": "…" }]
 }
 ```
 
-`parseBackup` checks every field of every row before anything is replaced: known posts, pay types, statuses and reasons, real calendar dates, non-negative amounts, no duplicate employee and no duplicate record, and every record pointing at an employee in the file. A file that fails any check is refused and the database is left untouched. Restoring replaces the whole database in one transaction, after an explicit confirmation.
+Version 2 added `advances`. A version 1 file, written before advances existed, is still accepted and read as having none.
+
+`parseBackup` checks every field of every row before anything is replaced: known posts, pay types, statuses and reasons, real calendar dates, non-negative amounts, advances above zero, no duplicate employee and no duplicate record, and every record and advance pointing at an employee in the file. A file that fails any check is refused and the database is left untouched. Restoring replaces the whole database in one transaction, after an explicit confirmation.
 
 The backup contains names, identity numbers and wages. It is the user's responsibility to store the file somewhere appropriate.

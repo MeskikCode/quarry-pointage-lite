@@ -7,7 +7,7 @@
 <p>
   <img src="docs/screenshots/phone-fr.png" alt="Écran de pointage en français sur téléphone" width="24%">
   <img src="docs/screenshots/phone-month.png" alt="Bilan du mois : jours, absences, heures supplémentaires et paie par employé" width="24%">
-  <img src="docs/screenshots/phone-employee.png" alt="Fiche employé, paie mensuelle ou journalière" width="24%">
+  <img src="docs/screenshots/phone-advances.png" alt="Avances d'un employé pour le mois" width="24%">
   <img src="docs/screenshots/phone-offline.png" alt="Mode hors ligne" width="24%">
 </p>
 
@@ -32,7 +32,8 @@ C'est un petit produit complet, publié en source ouverte pour montrer comment M
 - **Deux modes de paie**, comme sur le terrain :
   - *Mensuel* : sous contrat. Le salaire est dû pour le mois même si des jours manquent, et les heures supplémentaires sont payables.
   - *Journalier* : payé au jour travaillé. Les heures supplémentaires ne sont payées que si un tarif horaire est saisi pour l'employé.
-- **Export Excel mensuel.** Une feuille récapitulative par employé (jours travaillés, demi-journées, retards, absences par motif, heures supplémentaires, salaire de base, heures à payer, paie estimée) et une feuille de détail. C'est une aide à la préparation de la paie, pas une déclaration CNSS.
+- **Avances.** L'argent remis avant la paie se saisit par employé, avec une date et une note, et se déduit du reste à payer. Un solde négatif s'affiche en rouge.
+- **Export Excel mensuel, prêt pour le comptable.** Trois feuilles : un récapitulatif par employé (jours travaillés, absences par motif, heures supplémentaires, salaire de base, heures à payer, paie estimée, avances, reste à payer), tous les pointages, et toutes les avances. Avec titre, en-tête figé, vrais nombres et vraies dates, ligne de total et impression en paysage. C'est une aide à la préparation de la paie, pas une déclaration CNSS.
 - **Sauvegarde et restauration.** Les données n'existent que sur l'appareil : toute la base s'enregistre dans un fichier et se restaure depuis ce fichier.
 - **Cinq langues** : tamazight (tifinagh), arabe (de droite à gauche), français, anglais et espagnol.
 - **Installable et entièrement hors ligne.** Après la première visite, l'application démarre sans aucun réseau.
@@ -68,11 +69,11 @@ npm run build        # export statique dans out/, avec le service worker
 npm run preview      # sert out/ sur http://localhost:4173
 ```
 
-Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (75 tests unitaires), `npm run test:e2e` (66 tests de bout en bout, téléphone et bureau).
+Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (133 tests unitaires), `npm run test:e2e` (76 tests de bout en bout, téléphone et bureau).
 
 ## Comment c'est construit
 
-Next.js exporté en fichiers statiques, base IndexedDB (Dexie) sur l'appareil, service worker Serwist qui met tout l'export en cache, SheetJS pour Excel, Tailwind CSS sur les jetons du système de design MeskikCode. Les règles (pointage, paie, export, sauvegarde) sont des fonctions simples dans `src/lib/`, testées sans navigateur.
+Next.js exporté en fichiers statiques, base IndexedDB (Dexie) sur l'appareil, service worker Serwist qui met tout l'export en cache, write-excel-file pour Excel, Tailwind CSS sur les jetons du système de design MeskikCode. Les règles (pointage, paie, export, sauvegarde) sont des fonctions simples dans `src/lib/`, testées sans navigateur.
 
 La documentation technique est en anglais : [conception du système](docs/system-design.md), [modèle de données](docs/data-model.md), [système de design](docs/design-system.md), [traductions](docs/translations.md), [cahier des charges](BLUEPRINT.md).
 
@@ -86,7 +87,7 @@ Cette édition ouverte est volontairement réduite. Sont réalisés pour les cli
 
 - la synchronisation entre plusieurs téléphones et un tableau de bord au bureau, au retour du réseau ;
 - le lien entre les postes, les bons de pesée et le tonnage produit ;
-- la paie complète : retenues CNSS et fiscales, avances, bulletins imprimés.
+- la paie complète : retenues CNSS et fiscales, prêts sur plusieurs mois, bulletins imprimés.
 
 ## Projets sur mesure
 

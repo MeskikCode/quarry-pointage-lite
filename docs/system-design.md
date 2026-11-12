@@ -23,7 +23,8 @@ src/lib/            The rules. Plain TypeScript, no React, no browser needed.
   types.ts          Posts, teams, pay types, statuses: the vocabulary
   db.ts             The Dexie database and the sample crew
   attendance.ts     What a tap does to a record
-  summary.ts        Monthly totals and pay
+  advances.ts       Advances: validation, storage, totals
+  summary.ts        Monthly totals, pay, and the balance after advances
   export.ts         The Excel workbook
   backup.ts         Backup file: create, validate, restore
   format.ts         Dates and numbers
@@ -50,7 +51,7 @@ The application is exported with `output: "export"`: `next build` writes plain f
 2. bundles `src/sw.ts` (which uses [Serwist](https://serwist.pages.dev/)) with that list inlined,
 3. writes `out/sw.js`.
 
-On the first visit the service worker downloads and caches the entire export, about 1.7 MB: every script, the fonts for all five languages, and the spreadsheet library. From then on the application starts with no network at all, and nothing is fetched at runtime, so there are no runtime caching rules to get wrong.
+On the first visit the service worker downloads and caches the entire export, about 1.3 MB: every script, the fonts for all five languages, and the spreadsheet library. From then on the application starts with no network at all, and nothing is fetched at runtime, so there are no runtime caching rules to get wrong.
 
 Precaching everything, rather than an application shell, is deliberate. The export is small, and the costly failure is a supervisor discovering at month end, with no signal, that the Excel code was never downloaded.
 
@@ -72,5 +73,5 @@ The page is prerendered at build time in French. The date, the language and the 
 
 ## What is tested
 
-- **Unit (Vitest, 75 tests):** attendance rules (including the bulk "everyone present" and its undo), storage constraints, monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
-- **End to end (Playwright, 66 tests, phone and desktop):** the full attendance flow, the one-tap bulk action, the compact cards, the month summary, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.
+- **Unit (Vitest, 133 tests):** attendance rules (including the bulk "everyone present" and its undo), storage constraints, advances (validation, typed amounts, totals), the upgrade of a version 1 database, the structure of the generated Excel file (sheets, frozen rows, formats, dates, right to left), monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
+- **End to end (Playwright, 76 tests, phone and desktop):** the full attendance flow, the one-tap bulk action, the compact cards, the month summary, advances from entry to Excel and backup, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.

@@ -67,6 +67,22 @@ export function formatDays(value: number): string {
   return Number.isInteger(value) ? formatNumber(value) : formatNumber(value, 1);
 }
 
+/** Last calendar day of a `YYYY-MM` month, as `YYYY-MM-DD`. */
+export function lastDayOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return `${month}-${pad(new Date(y, m, 0).getDate())}`;
+}
+
+/**
+ * Read an amount typed by a person: digits with an optional decimal comma or
+ * point (at most two decimals), spaces allowed between thousands.
+ * Returns `NaN` for anything else, including negative numbers.
+ */
+export function parseAmount(text: string): number {
+  const cleaned = text.replace(/[\s  ]/g, "").replace(",", ".");
+  return /^\d+(\.\d{1,2})?$/.test(cleaned) ? Number(cleaned) : Number.NaN;
+}
+
 /** Shift a `YYYY-MM` month by a number of months. */
 export function addMonths(month: string, months: number): string {
   const [y, m] = month.split("-").map(Number);

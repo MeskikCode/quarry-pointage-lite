@@ -1,5 +1,6 @@
 import {
   POST_KEYS,
+  type Advance,
   type AttendanceRecord,
   type Employee,
   type PayType,
@@ -31,7 +32,12 @@ export interface MonthlyRow {
   basePay: number;
   /** Overtime hours x the worker's overtime rate (zero when not paid). */
   overtimePay: number;
+  /** Base pay plus overtime pay, before advances. */
   estimatedPay: number;
+  /** Advances handed over during the month. */
+  advances: number;
+  /** What is still to pay: estimated pay minus advances. Negative when more was advanced than is due. */
+  balance: number;
 }
 
 export interface ShiftCounts {
@@ -50,7 +56,7 @@ export function recordsOfMonth<T extends AttendanceRecord>(records: T[], month: 
 }
 
 /**
- * Pay for the month, before any deduction.
+ * Pay for the month, before advances and any other deduction.
  *
  * - Monthly staff are under contract: the salary is due for the month even
  *   when some days are missed. Absences are reported, not deducted.
@@ -71,28 +77,38 @@ export function computePay(
 /**
  * Build the monthly recap.
  *
- * A worker appears if they are active or have at least one record in the
- * month, so a seasonal worker deactivated mid-month is still paid for the
- * days they worked. A deactivated monthly worker with no record is left out.
- * Rows are sorted by post, in the order of the site hierarchy, then by name.
+ * A worker appears if they are active, or have a record or an advance in the
+ * month: a seasonal worker deactivated mid-month is still paid for the days
+ * worked, and an advance already handed over is never lost from the list.
+ * A deactivated worker with nothing in the month is left out. Rows follow the
+ * order of the site hierarchy, then the name.
+ *
+ * `advances` may hold advances of any month; only those of `month` count.
  */
 export function summariseMonth(
   employees: (Employee & { id: number })[],
   records: AttendanceRecord[],
   month: string,
+  advances: Advance[] = [],
 ): MonthlyRow[] {
-  const inMonth = recordsOfMonth(records, month);
-  const byEmployee = new Map<number, AttendanceRecord[]>();
-  for (const record of inMonth) {
-    const list = byEmployee.get(record.employeeId);
-    if (list) list.push(record);
-    else byEmployee.set(record.employeeId, [record]);
-  }
+  const prefix = `${month}-`;
+  const group = <T extends { employeeId: number }>(items: T[]) => {
+    const map = new Map<number, T[]>();
+    for (const item of items) {
+      const list = map.get(item.employeeId);
+      if (list) list.push(item);
+      else map.set(item.employeeId, [item]);
+    }
+    return map;
+  };
+  const byEmployee = group(recordsOfMonth(records, month));
+  const advancesByEmployee = group(advances.filter((a) => a.date.startsWith(prefix)));
 
   const rows: MonthlyRow[] = [];
   for (const employee of employees) {
     const own = byEmployee.get(employee.id) ?? [];
-    if (!employee.active && own.length === 0) continue;
+    const ownAdvances = advancesByEmployee.get(employee.id) ?? [];
+    if (!employee.active && own.length === 0 && ownAdvances.length === 0) continue;
 
     const count = (status: Status) => own.filter((r) => r.status === status).length;
     const reason = (key: AttendanceRecord["reason"]) =>
@@ -103,6 +119,8 @@ export function summariseMonth(
     const late = count("late");
     const daysWorked = present + late + halfDays * 0.5;
     const overtimeHours = own.reduce((sum, r) => sum + r.overtimeHours, 0);
+    const pay = computePay(employee, daysWorked, overtimeHours);
+    const advanced = roundMoney(ownAdvances.reduce((sum, a) => sum + a.amount, 0));
 
     rows.push({
       employeeId: employee.id,
@@ -121,14 +139,15 @@ export function summariseMonth(
       absentAuthorised: reason("autorise"),
       daysWorked,
       overtimeHours,
-      ...computePay(employee, daysWorked, overtimeHours),
+      ...pay,
+      advances: advanced,
+      balance: roundMoney(pay.estimatedPay - advanced),
     });
   }
 
   return rows.sort(
     (a, b) =>
-      POST_KEYS.indexOf(a.post) - POST_KEYS.indexOf(b.post) ||
-      a.fullName.localeCompare(b.fullName, "fr"),
+      POST_KEYS.indexOf(a.post) - POST_KEYS.indexOf(b.post) || a.fullName.localeCompare(b.fullName, "fr"),
   );
 }
 

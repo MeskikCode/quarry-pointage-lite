@@ -7,8 +7,8 @@
 <p>
   <img src="docs/screenshots/phone-fr.png" alt="Attendance screen in French on a phone" width="24%">
   <img src="docs/screenshots/phone-month.png" alt="Month summary: days worked, absences, overtime and pay due per employee" width="24%">
+  <img src="docs/screenshots/phone-advances.png" alt="Advances of one employee for the month" width="24%">
   <img src="docs/screenshots/phone-ar.png" alt="Attendance screen in Arabic, right to left" width="24%">
-  <img src="docs/screenshots/phone-zgh.png" alt="Attendance screen in Tamazight, in Tifinagh" width="24%">
 </p>
 
 <img src="docs/screenshots/desktop-fr.png" alt="The same screen on a desktop monitor, three columns of employees">
@@ -34,7 +34,8 @@ It is a small, complete product, published in the open as an example of how Mesk
 - **Two ways of being paid**, as on site:
   - *Monthly*: under contract. The salary is due for the month even when some days are missed, and overtime is payable.
   - *Daily*: paid for the days worked. Overtime is paid only if an hourly rate is set for that employee.
-- **Monthly Excel export.** A summary sheet per employee (days worked, half days, late arrivals, absences by reason, overtime, base pay, overtime pay, estimated pay) and a detail sheet with every record. It is an aid for preparing payroll, not a CNSS declaration.
+- **Advances (avances).** Money handed over before pay day is entered per employee, with a date and a note, and deducted from what is left to pay. A balance that goes negative shows in red.
+- **Monthly Excel export, ready for the accountant.** Three sheets: a summary per employee (days worked, absences by reason, overtime, base pay, overtime pay, estimated pay, advances, left to pay), every attendance record, and every advance. Titled, with a frozen header, real numbers and dates, a totals row and landscape printing; right to left in Arabic. It is an aid for preparing payroll, not a CNSS declaration.
 - **Backup and restore.** The data exists only on the device, so the whole database can be saved to a file and restored from it.
 - **Five languages**: Tamazight (Tifinagh), Arabic (right to left), French, English and Spanish.
 - **Installable and fully offline.** After the first visit it starts with no network at all.
@@ -75,8 +76,8 @@ Checks:
 ```bash
 npm run lint
 npm run typecheck
-npm test             # 75 unit tests
-npm run test:e2e     # 66 end-to-end tests, phone and desktop (after npm run build)
+npm test             # 133 unit tests
+npm run test:e2e     # 76 end-to-end tests, phone and desktop (after npm run build)
 npm run audit:layout # 12 widths x 5 languages, reports anything clipped (needs npm run preview)
 ```
 
@@ -87,7 +88,7 @@ npm run audit:layout # 12 widths x 5 languages, reports anything clipped (needs 
 | Application | Next.js (App Router), React, TypeScript, exported as static files |
 | Storage | IndexedDB through Dexie, on the device only |
 | Offline | Serwist service worker precaching the whole export |
-| Export | SheetJS, loaded only when a file is written |
+| Export | write-excel-file, loaded only when a file is written |
 | Interface | Tailwind CSS over the MeskikCode design system tokens |
 | Tests | Vitest for the rules, Playwright for the application |
 
@@ -109,7 +110,7 @@ This is the open edition, deliberately small. The following are built for client
 
 - Sync between several phones and an office dashboard when the network returns
 - Linking shifts to weighbridge tickets and production tonnage
-- Full payroll: CNSS and tax deductions, advances, printed pay slips
+- Full payroll: CNSS and tax deductions, loans over several months, printed pay slips
 
 ## Custom work
 

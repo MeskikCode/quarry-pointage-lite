@@ -1,18 +1,29 @@
 import { clampOvertime } from "./attendance";
 import type { PointageDB } from "./db";
+import { downloadBlob } from "./download";
 import { isISODate } from "./format";
 import {
   ABSENCE_REASONS,
+  MAX_ADVANCE,
   PAY_TYPES,
   POST_KEYS,
   SHIFTS,
   STATUSES,
+  type Advance,
   type AttendanceRecord,
   type Employee,
 } from "./types";
 
 export const BACKUP_APP = "quarry-pointage-lite";
-export const BACKUP_VERSION = 1;
+
+/**
+ * Version 2 added advances. Files of version 1 (no advances) are still
+ * accepted and read as having none.
+ */
+export const BACKUP_VERSION = 2;
+const SUPPORTED_VERSIONS = [1, 2];
+
+const MAX_NOTE_LENGTH = 80;
 
 export interface Backup {
   app: typeof BACKUP_APP;
@@ -20,6 +31,7 @@ export interface Backup {
   exportedAt: string;
   employees: (Employee & { id: number })[];
   attendance: AttendanceRecord[];
+  advances: Advance[];
 }
 
 export class BackupError extends Error {
@@ -31,9 +43,10 @@ export class BackupError extends Error {
 
 /** Read everything into a backup object. */
 export async function createBackup(db: PointageDB, now = new Date()): Promise<Backup> {
-  const [employees, attendance] = await Promise.all([
+  const [employees, attendance, advances] = await Promise.all([
     db.employees.toArray(),
     db.attendance.toArray(),
+    db.advances.toArray(),
   ]);
   return {
     app: BACKUP_APP,
@@ -41,6 +54,7 @@ export async function createBackup(db: PointageDB, now = new Date()): Promise<Ba
     exportedAt: now.toISOString(),
     employees: employees as Backup["employees"],
     attendance,
+    advances,
   };
 }
 
@@ -99,6 +113,23 @@ function parseRecord(raw: unknown, employeeIds: Set<number>): AttendanceRecord {
   };
 }
 
+function parseAdvance(raw: unknown, employeeIds: Set<number>): Advance {
+  if (!isObject(raw)) throw new BackupError("advance is not an object");
+  const { employeeId, date, amount, note } = raw;
+  if (!isPositiveInt(employeeId) || !employeeIds.has(employeeId)) throw new BackupError("advance employee");
+  if (!isISODate(date)) throw new BackupError("advance date");
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > MAX_ADVANCE)
+    throw new BackupError("advance amount");
+  if (note !== undefined && (typeof note !== "string" || note.length > MAX_NOTE_LENGTH))
+    throw new BackupError("advance note");
+  return {
+    employeeId,
+    date,
+    amount: Math.round(amount * 100) / 100,
+    ...(note ? { note } : {}),
+  };
+}
+
 /**
  * Validate the text of a backup file. Every field is checked: a file that is
  * not exactly what this application wrote is refused before it can replace
@@ -113,9 +144,13 @@ export function parseBackup(text: string): Backup {
   }
   if (!isObject(data)) throw new BackupError("not an object");
   if (data.app !== BACKUP_APP) throw new BackupError("not a backup of this application");
-  if (data.version !== BACKUP_VERSION) throw new BackupError("unsupported version");
+  if (typeof data.version !== "number" || !SUPPORTED_VERSIONS.includes(data.version))
+    throw new BackupError("unsupported version");
   if (!Array.isArray(data.employees) || !Array.isArray(data.attendance))
     throw new BackupError("missing tables");
+  // Version 1 has no advances table; from version 2 on it is required.
+  const rawAdvances: unknown[] = data.version === 1 ? [] : (data.advances as unknown[]);
+  if (!Array.isArray(rawAdvances)) throw new BackupError("missing advances");
 
   const employees = data.employees.map(parseEmployee);
   const ids = new Set(employees.map((e) => e.id));
@@ -125,22 +160,28 @@ export function parseBackup(text: string): Backup {
   const slots = new Set(attendance.map((r) => `${r.employeeId}|${r.date}|${r.shift}`));
   if (slots.size !== attendance.length) throw new BackupError("duplicate record");
 
+  const advances = rawAdvances.map((raw) => parseAdvance(raw, ids));
+
   return {
     app: BACKUP_APP,
+    // Whatever the file's version, what comes back is in the current shape.
     version: BACKUP_VERSION,
     exportedAt: typeof data.exportedAt === "string" ? data.exportedAt : "",
     employees,
     attendance,
+    advances,
   };
 }
 
 /** Replace the whole database with the backup, in one transaction. */
 export async function restoreBackup(db: PointageDB, backup: Backup): Promise<void> {
-  await db.transaction("rw", db.employees, db.attendance, async () => {
+  await db.transaction("rw", db.employees, db.attendance, db.advances, async () => {
     await db.attendance.clear();
+    await db.advances.clear();
     await db.employees.clear();
     await db.employees.bulkAdd(backup.employees);
     await db.attendance.bulkAdd(backup.attendance);
+    await db.advances.bulkAdd(backup.advances);
   });
 }
 
@@ -152,12 +193,5 @@ export function backupFileName(now = new Date()): string {
 
 /** Hand a text file to the browser as a download. */
 export function downloadText(text: string, fileName: string, type = "application/json"): void {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(new Blob([text], { type }), fileName);
 }

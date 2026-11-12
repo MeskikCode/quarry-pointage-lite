@@ -35,6 +35,11 @@ C'est un petit produit complet, publié en source ouverte pour montrer comment M
 - **Avances.** L'argent remis avant la paie se saisit par employé, avec une date et une note, et se déduit du reste à payer. Un solde négatif s'affiche en rouge.
 - **Export Excel mensuel, prêt pour le comptable.** Trois feuilles : un récapitulatif par employé (jours travaillés, absences par motif, heures supplémentaires, salaire de base, heures à payer, paie estimée, avances, reste à payer), tous les pointages, et toutes les avances. Avec titre, en-tête figé, vrais nombres et vraies dates, ligne de total et impression en paysage. C'est une aide à la préparation de la paie, pas une déclaration CNSS.
 - **Sauvegarde et restauration.** Les données n'existent que sur l'appareil : toute la base s'enregistre dans un fichier et se restaure depuis ce fichier.
+- **Un rappel de sauvegarde.** Dès que la dernière sauvegarde a une semaine (ou trois jours après la première utilisation, sur un appareil jamais sauvegardé), un message le signale, avec le bouton qui la fait.
+- **Le mois d'un employé, jour par jour.** Un calendrier montre en couleur le poste de jour et de nuit de chaque date, pour régler en quelques secondes un « j'étais là le 14 ».
+- **Le nom du site** en haut de l'écran et sur chaque feuille Excel.
+- **Partir d'une liste vide.** Effacer l'équipe d'exemple (et tout le reste) en deux appuis, et supprimer un employé saisi par erreur. Un employé qui a des pointages ou des avances peut seulement être désactivé : aucun mois passé ne change.
+- **Accessible.** Chaque écran et chaque fenêtre passe un audit automatique WCAG 2.1 AA en français et en arabe, et tout se commande au clavier.
 - **Cinq langues** : tamazight (tifinagh), arabe (de droite à gauche), français, anglais et espagnol.
 - **Installable et entièrement hors ligne.** Après la première visite, l'application démarre sans aucun réseau.
 - **Toutes les tailles d'écran**, du téléphone de 320 px au moniteur de bureau.
@@ -69,7 +74,11 @@ npm run build        # export statique dans out/, avec le service worker
 npm run preview      # sert out/ sur http://localhost:4173
 ```
 
-Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (133 tests unitaires), `npm run test:e2e` (76 tests de bout en bout, téléphone et bureau).
+Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (164 tests unitaires), `npm run test:e2e` (96 tests de bout en bout, audit d'accessibilité compris, téléphone et bureau).
+
+## Qualité mesurée
+
+Lighthouse 13.6 sur la version de production, médiane de trois mesures sur un téléphone moyen simulé (4G lente, processeur 4 fois plus lent) : performance 89 sur un téléphone en français, 90 en arabe, 68 en anglais; accessibilité, bonnes pratiques et référencement à 100. Le contenu s'affiche en 1,1 s en français et en arabe. Le détail et les réserves sont dans le [README anglais](README.md#measured-quality).
 
 ## Comment c'est construit
 

@@ -178,6 +178,13 @@ h4 {
   letter-spacing: var(--type-head-tracking);
 }
 
+/* While another language than French is being applied, the French words of
+ * the prerendered page are not shown. See LANGUAGE_BOOT_SCRIPT. */
+html[data-lang-pending] main,
+html[data-lang-pending] header [role="status"] {
+  visibility: hidden;
+}
+
 /* Structural uppercase: micro-labels, badges, field action labels. */
 @utility caps {
   text-transform: uppercase;

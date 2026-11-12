@@ -1,7 +1,7 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { CalendarRange, ChevronLeft, ChevronRight, HandCoins, Plus } from "lucide-react";
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, HandCoins, Plus } from "lucide-react";
 import { useMemo } from "react";
 import { db } from "@/lib/db";
 import { postName } from "@/lib/export";
@@ -19,6 +19,8 @@ interface Props {
   employees: StoredEmployee[];
   /** Open the advances of one employee. */
   onAdvances: (employeeId: number) => void;
+  /** Open the day-by-day calendar of one employee. */
+  onCalendar: (employeeId: number) => void;
 }
 
 /** A minus sign, not a hyphen: it reads as a deduction. */
@@ -29,7 +31,7 @@ const deduction = (amount: number) => `−${formatNumber(amount, 2)}`;
  * advances and what is left to pay. This is what the owner or the accountant
  * reads; the Excel export carries the same figures in more detail.
  */
-export function MonthlySummary({ month, onMonthChange, employees, onAdvances }: Props) {
+export function MonthlySummary({ month, onMonthChange, employees, onAdvances, onCalendar }: Props) {
   const { t } = useI18n();
 
   const records = useLiveQuery(
@@ -126,9 +128,9 @@ export function MonthlySummary({ month, onMonthChange, employees, onAdvances }: 
               >
                 <header className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h3 className="text-md leading-snug font-bold break-words text-white" dir="auto">
+                    <h2 className="text-md leading-snug font-bold break-words text-white" dir="auto">
                       {row.fullName}
-                    </h3>
+                    </h2>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                       <span dir="auto">{postName(row, t)}</span>
                       <Badge tone={row.payType === "monthly" ? "brand" : "neutral"}>{t.payType[row.payType]}</Badge>
@@ -156,12 +158,20 @@ export function MonthlySummary({ month, onMonthChange, employees, onAdvances }: 
                   <Stat label={t.month.absences} value={formatNumber(absences)} />
                   <Stat label={t.overtime.label} value={`${formatNumber(row.overtimeHours)} ${t.overtime.unit}`} />
                 </dl>
+                <div className="flex gap-2">
+                <IconButton
+                  icon={CalendarDays}
+                  label={`${t.calendar.open} — ${row.fullName}`}
+                  variant="outline"
+                  size="lg"
+                  data-calendar-open={row.fullName}
+                  onClick={() => onCalendar(row.employeeId)}
+                />
                 <button
                   type="button"
                   data-advances-open={row.fullName}
-                  aria-label={`${t.advance.title} — ${row.fullName}`}
                   onClick={() => onAdvances(row.employeeId)}
-                  className="press flex min-h-12 w-full items-center justify-between gap-3 rounded-control border-2 border-tile-line bg-tile px-3 text-start hover:border-accent focus-visible:shadow-focus"
+                  className="press flex min-h-12 min-w-0 flex-1 items-center justify-between gap-3 rounded-control border-2 border-tile-line bg-tile px-3 text-start hover:border-accent focus-visible:shadow-focus"
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <HandCoins size={18} aria-hidden className="shrink-0 text-accent" />
@@ -176,7 +186,10 @@ export function MonthlySummary({ month, onMonthChange, employees, onAdvances }: 
                     </span>
                     <Plus size={18} aria-hidden className="shrink-0 text-accent" />
                   </span>
+                  {/* Read after the visible text, so that the spoken name starts with what is shown. */}
+                  <span className="sr-only"> — {row.fullName}</span>
                 </button>
+                </div>
               </article>
             </li>
           );

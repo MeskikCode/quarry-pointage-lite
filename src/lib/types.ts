@@ -112,6 +112,12 @@ export interface Advance {
 
 export type StoredAdvance = Advance & { id: number };
 
+/** A setting of the site, stored as a key and a text value. */
+export interface Setting {
+  key: string;
+  value: string;
+}
+
 export function teamOf(post: Post): Team {
   return POSTS[post].team;
 }

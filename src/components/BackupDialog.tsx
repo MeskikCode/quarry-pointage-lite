@@ -10,8 +10,10 @@ import {
   restoreBackup,
   type Backup,
 } from "@/lib/backup";
+import { recordBackup } from "@/lib/backupReminder";
 import { db } from "@/lib/db";
 import { APP_VERSION } from "@/lib/env";
+import { todayISO } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "./ui/Button";
 import { Dialog } from "./ui/Dialog";
@@ -30,6 +32,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
     try {
       const backup = await createBackup(db);
       downloadText(JSON.stringify(backup, null, 2), backupFileName());
+      recordBackup(todayISO());
       setOutcome("exported");
     } catch {
       setOutcome("failed");

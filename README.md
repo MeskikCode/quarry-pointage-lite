@@ -8,7 +8,7 @@
   <img src="docs/screenshots/phone-fr.png" alt="Attendance screen in French on a phone" width="24%">
   <img src="docs/screenshots/phone-month.png" alt="Month summary: days worked, absences, overtime and pay due per employee" width="24%">
   <img src="docs/screenshots/phone-advances.png" alt="Advances of one employee for the month" width="24%">
-  <img src="docs/screenshots/phone-ar.png" alt="Attendance screen in Arabic, right to left" width="24%">
+  <img src="docs/screenshots/phone-calendar.png" alt="One employee's month, day by day" width="24%">
 </p>
 
 <img src="docs/screenshots/desktop-fr.png" alt="The same screen on a desktop monitor, three columns of employees">
@@ -37,6 +37,11 @@ It is a small, complete product, published in the open as an example of how Mesk
 - **Advances (avances).** Money handed over before pay day is entered per employee, with a date and a note, and deducted from what is left to pay. A balance that goes negative shows in red.
 - **Monthly Excel export, ready for the accountant.** Three sheets: a summary per employee (days worked, absences by reason, overtime, base pay, overtime pay, estimated pay, advances, left to pay), every attendance record, and every advance. Titled, with a frozen header, real numbers and dates, a totals row and landscape printing; right to left in Arabic. It is an aid for preparing payroll, not a CNSS declaration.
 - **Backup and restore.** The data exists only on the device, so the whole database can be saved to a file and restored from it.
+- **A reminder to back up.** Once the last backup is a week old (or three days after first use, on a device never backed up), a notice says so, with a button that does it.
+- **The month of one employee, day by day.** A calendar shows the day and night shift of each day in colour, to settle "I was there on the 14th" in seconds.
+- **The site's own name** at the top of the screen and on every Excel sheet.
+- **Starting clean.** Erase the sample crew (and everything else) in two taps, and delete an employee entered by mistake. Anyone with attendance or advances can only be deactivated, so no past month ever changes.
+- **Accessible.** Every screen and dialog passes an automated WCAG 2.1 AA audit in French and Arabic, works with the keyboard, and has names that match what is written on each button.
 - **Five languages**: Tamazight (Tifinagh), Arabic (right to left), French, English and Spanish.
 - **Installable and fully offline.** After the first visit it starts with no network at all.
 - **Every screen size**, from a 320px phone to a desktop monitor.
@@ -76,10 +81,24 @@ Checks:
 ```bash
 npm run lint
 npm run typecheck
-npm test             # 133 unit tests
-npm run test:e2e     # 76 end-to-end tests, phone and desktop (after npm run build)
+npm test             # 164 unit tests
+npm run test:e2e     # 96 end-to-end tests, including the accessibility audit,, phone and desktop (after npm run build)
 npm run audit:layout # 12 widths x 5 languages, reports anything clipped (needs npm run preview)
 ```
+
+## Measured quality
+
+Measured on the production build with Lighthouse 13.6 (median of three runs on a simulated mid-range phone with slow 4G and a 4x slower processor):
+
+| Phone language | Performance | Accessibility | Best practices | SEO | Content visible (LCP) | Blocked time (TBT) | Layout shift |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| French | 89 | 100 | 100 | 100 | 1.1 s | 0.44 s | 0 |
+| Arabic | 90 | 100 | 100 | 100 | 1.1 s | 0.43 s | 0 |
+| English | 68 | 100 | 100 | 100 | 5.7 s | 0.45 s | 0 |
+
+On a desktop computer, performance is 97 to 98. The scores vary from run to run by up to 20 points on the same build, which is why medians are given. A phone whose language is not French or Arabic waits for the application to switch the page from French before showing it; that is the 5.7 s. After the first visit everything is served from the device, so later starts do not depend on the network at all.
+
+Accessibility: every screen and dialog passes an automated WCAG 2.1 AA audit (axe-core) in French and Arabic, on phone and desktop. No session with a person using a screen reader has been held yet.
 
 ## How it is built
 

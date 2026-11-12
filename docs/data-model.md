@@ -73,6 +73,17 @@ Indexes: `++id, employeeId, date`. Added in version 2 of the database.
 
 An employee may have any number of advances in a month. Rules and validation are in `src/lib/advances.ts`.
 
+## Table `settings`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `key` | string, primary key | The setting's name |
+| `value` | string | Its value |
+
+Added in version 3 of the database. One key is used: `siteName`, the site's name (up to 60 characters), shown in the header and on the Excel sheets.
+
+The date of the last backup is not in the database: it belongs to the device, not to the site's data, and is kept in the browser's local storage (`qp_last_backup`).
+
 ## Pay rules
 
 Implemented in `computePay` and `summariseMonth` (`src/lib/summary.ts`).
@@ -100,7 +111,7 @@ The result is labelled *estimated*. It is gross pay before any deduction other t
 
 ## Migrations
 
-The schema is declared in numbered blocks, `this.version(n).stores({...})`, in `src/lib/db.ts`. Version 1 has employees and attendance; version 2 adds advances. To change it:
+The schema is declared in numbered blocks, `this.version(n).stores({...})`, in `src/lib/db.ts`. Version 1 has employees and attendance; version 2 adds advances; version 3 adds settings. To change it:
 
 1. Add a new block below the existing ones, with `.upgrade(tx => ...)` if existing rows must be converted. Never edit a published version.
 2. Bump `BACKUP_VERSION` in `src/lib/backup.ts` if the shape of stored objects changed, and make `parseBackup` accept and convert the previous versions.
@@ -115,15 +126,16 @@ Devices in the field upgrade in place the next time the application opens.
 ```json
 {
   "app": "quarry-pointage-lite",
-  "version": 2,
+  "version": 3,
   "exportedAt": "2026-11-12T08:30:00.000Z",
   "employees": [{ "id": 1, "fullName": "…", "post": "ouvrier", "payType": "daily", "rate": 100, "overtimeRate": 0, "active": true }],
   "attendance": [{ "employeeId": 1, "date": "2026-11-12", "shift": "jour", "status": "present", "reason": "none", "overtimeHours": 0 }],
-  "advances": [{ "employeeId": 1, "date": "2026-11-10", "amount": 200, "note": "…" }]
+  "advances": [{ "employeeId": 1, "date": "2026-11-10", "amount": 200, "note": "…" }],
+  "settings": { "siteName": "…" }
 }
 ```
 
-Version 2 added `advances`. A version 1 file, written before advances existed, is still accepted and read as having none.
+Version 2 added `advances`, version 3 `settings`. Older files are still accepted: a version 1 file is read as having no advances, and versions 1 and 2 as having no settings.
 
 `parseBackup` checks every field of every row before anything is replaced: known posts, pay types, statuses and reasons, real calendar dates, non-negative amounts, advances above zero, no duplicate employee and no duplicate record, and every record and advance pointing at an employee in the file. A file that fails any check is refused and the database is left untouched. Restoring replaces the whole database in one transaction, after an explicit confirmation.
 

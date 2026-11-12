@@ -35,6 +35,11 @@ Es un producto pequeño y completo, publicado en abierto como ejemplo de cómo t
 - **Anticipos.** El dinero entregado antes del día de pago se anota por empleado, con fecha y nota, y se descuenta de lo pendiente de pago. Un saldo negativo aparece en rojo.
 - **Exportación mensual a Excel, lista para el contable.** Tres hojas: un resumen por empleado (días trabajados, ausencias, horas extra, salario base, paga estimada, anticipos, pendiente de pago), todos los fichajes y todos los anticipos. Con título, encabezado fijo, números y fechas reales, fila de totales e impresión apaisada. Es una ayuda para preparar la nómina, no una declaración a la CNSS.
 - **Copia de seguridad y restauración.** Los datos solo existen en el dispositivo: toda la base se guarda en un archivo y se restaura desde él.
+- **Un aviso para hacer la copia.** Cuando la última copia tiene una semana (o tres días tras el primer uso, en un dispositivo sin copia), un aviso lo indica, con el botón que la hace.
+- **El mes de un empleado, día a día.** Un calendario muestra en color el turno de día y de noche de cada fecha.
+- **El nombre del sitio** arriba en la pantalla y en cada hoja de Excel.
+- **Empezar de cero.** Borrar la plantilla de ejemplo (y todo lo demás) con dos toques, y eliminar un empleado añadido por error. Quien tiene fichajes o anticipos solo puede desactivarse: ningún mes pasado cambia.
+- **Accesible.** Cada pantalla y cada ventana pasan una auditoría automática WCAG 2.1 AA en francés y árabe, y todo se maneja con el teclado.
 - **Cinco idiomas**: tamazight (tifinagh), árabe (de derecha a izquierda), francés, inglés y español.
 - **Instalable y totalmente sin conexión.** Tras la primera visita arranca sin ninguna red.
 - **Todos los tamaños de pantalla**, desde un teléfono de 320 px hasta un monitor de escritorio.

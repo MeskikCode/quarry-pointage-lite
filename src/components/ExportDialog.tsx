@@ -1,11 +1,13 @@
 "use client";
 
+import { useLiveQuery } from "dexie-react-hooks";
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { db } from "@/lib/db";
 import { downloadBlob } from "@/lib/download";
 import { buildExportTables, buildWorkbookBlob, exportFileName } from "@/lib/export";
 import { useI18n } from "@/lib/i18n/provider";
+import { readSiteName } from "@/lib/settings";
 import type { StoredEmployee } from "@/lib/types";
 import { Button } from "./ui/Button";
 import { Dialog } from "./ui/Dialog";
@@ -19,6 +21,7 @@ export function ExportDialog({ initialMonth, onClose }: { initialMonth: string; 
   const { t, dir } = useI18n();
   const [month, setMonth] = useState(initialMonth);
   const [outcome, setOutcome] = useState<Outcome>("idle");
+  const siteName = useLiveQuery(() => readSiteName(db), []) ?? "";
   const valid = /^\d{4}-(0[1-9]|1[0-2])$/.test(month);
 
   async function run() {
@@ -36,7 +39,7 @@ export function ExportDialog({ initialMonth, onClose }: { initialMonth: string; 
         setOutcome("empty");
         return;
       }
-      downloadBlob(await buildWorkbookBlob(tables, t, month, dir === "rtl"), exportFileName(t, month));
+      downloadBlob(await buildWorkbookBlob(tables, t, month, dir === "rtl", siteName), exportFileName(t, month));
       setOutcome("done");
     } catch {
       setOutcome("failed");

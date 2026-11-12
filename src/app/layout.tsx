@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { FIELD_INK, asset } from "@/lib/env";
+import { LANGUAGE_BOOT_SCRIPT } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/provider";
 import "./globals.css";
 
@@ -33,6 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // language is applied on the device (see I18nProvider).
   return (
     <html lang="fr" dir="ltr" data-theme="dark" suppressHydrationWarning>
+      <head>
+        {/* Must run before the first paint: sets the device's language and direction. */}
+        <script dangerouslySetInnerHTML={{ __html: LANGUAGE_BOOT_SCRIPT }} />
+      </head>
       <body>
         <I18nProvider>{children}</I18nProvider>
       </body>

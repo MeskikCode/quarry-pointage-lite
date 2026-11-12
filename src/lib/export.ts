@@ -280,6 +280,7 @@ export async function buildWorkbookBlob(
   t: Dictionary,
   month: string,
   rtl: boolean,
+  siteName = "",
 ): Promise<Blob> {
   const { default: writeXlsxFile } = await import("write-excel-file/browser");
   const label = formatMonth(month);
@@ -287,7 +288,7 @@ export async function buildWorkbookBlob(
   const specs: SheetSpec[] = [
     {
       name: t.sheet.summary,
-      title: `${t.app.name} — ${label}`,
+      title: `${siteName || t.app.name} — ${label}`,
       subtitle: t.month.note,
       columns: SUMMARY_COLUMNS,
       table: tables.summary,
@@ -295,7 +296,7 @@ export async function buildWorkbookBlob(
     },
     {
       name: t.sheet.detail,
-      title: `${t.sheet.detail} — ${label}`,
+      title: `${siteName ? `${siteName} · ` : ""}${t.sheet.detail} — ${label}`,
       subtitle: "",
       columns: DETAIL_COLUMNS,
       table: tables.detail,
@@ -303,7 +304,7 @@ export async function buildWorkbookBlob(
     },
     {
       name: t.sheet.advancesSheet,
-      title: `${t.sheet.advancesSheet} — ${label}`,
+      title: `${siteName ? `${siteName} · ` : ""}${t.sheet.advancesSheet} — ${label}`,
       subtitle: "",
       columns: ADVANCES_COLUMNS,
       table: tables.advances,

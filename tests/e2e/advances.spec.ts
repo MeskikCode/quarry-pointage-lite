@@ -149,7 +149,7 @@ test("carries advances into the Excel file and through backup and restore", asyn
   const jsonFile = await jsonDownload;
   const path = await jsonFile.path();
   const backup = JSON.parse(readFileSync(path, "utf8"));
-  expect(backup.version).toBe(2);
+  expect(backup.version).toBe(3);
   expect(backup.advances).toEqual([
     expect.objectContaining({ amount: 250, note: "Avance de test" }),
   ]);

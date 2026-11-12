@@ -71,6 +71,7 @@ describe("backup and restore", () => {
       { employeeId: 1, date: "2026-11-11", shift: "jour", status: "present", reason: "none", overtimeHours: 1 },
     ],
     advances: [{ employeeId: 1, date: "2026-11-11", amount: 250, note: "Réparation" }],
+    settings: { siteName: "Carrière Test" },
   });
 
   it("accepts a well-formed file", () => {

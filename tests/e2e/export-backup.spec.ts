@@ -73,7 +73,7 @@ test("backs the data up to a file and restores it", async ({ page }) => {
   expect(file.suggestedFilename()).toMatch(/^quarry-pointage-lite-backup-\d{4}-\d{2}-\d{2}\.json$/);
   const path = await file.path();
   const backup = JSON.parse(readFileSync(path, "utf8"));
-  expect(backup.version).toBe(2);
+  expect(backup.version).toBe(3);
   expect(backup.employees).toHaveLength(15);
   expect(backup.attendance).toHaveLength(1);
   expect(backup.advances).toEqual([]);

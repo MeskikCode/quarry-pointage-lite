@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Advance, AttendanceRecord, Employee } from "./types";
+import type { Advance, AttendanceRecord, Employee, Setting } from "./types";
 
 /**
  * Local database. Everything the application knows lives here, on the
@@ -13,6 +13,7 @@ export class PointageDB extends Dexie {
   employees!: EntityTable<Employee, "id">;
   attendance!: EntityTable<AttendanceRecord, "id">;
   advances!: EntityTable<Advance, "id">;
+  settings!: EntityTable<Setting, "key">;
 
   constructor(name = "quarry-pointage-lite") {
     super(name);
@@ -27,6 +28,11 @@ export class PointageDB extends Dexie {
     // and a device already in use upgrades in place the next time it opens.
     this.version(2).stores({
       advances: "++id, employeeId, date",
+    });
+
+    // Version 3 adds the site's settings (its name, for now).
+    this.version(3).stores({
+      settings: "key",
     });
 
     this.on("populate", (tx) => {

@@ -79,6 +79,16 @@ for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
 
 {
   const { context, page } = await open(phone, "fr");
+  await page.getByRole("button", { name: "Réglages" }).click();
+  await page.getByRole("dialog").locator("[name=siteName]").fill("Carrière Oued Tensift");
+  await page.getByRole("dialog").locator("form button[type=submit]").click();
+  await page.getByRole("dialog").getByText("Nom enregistré.").waitFor();
+  await page.screenshot({ path: join(OUT, "phone-settings.png") });
+  await context.close();
+}
+
+{
+  const { context, page } = await open(phone, "fr");
   await page.getByRole("button", { name: "Langue" }).click();
   await page.screenshot({ path: join(OUT, "phone-languages.png") });
   await context.close();
@@ -100,6 +110,11 @@ for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
   await page.evaluate(() => document.fonts.ready);
   await addSampleAdvances(page, join(OUT, "phone-advances.png"));
   await page.screenshot({ path: join(OUT, "phone-month.png") });
+  // One employee's month, day by day.
+  await page.locator("[data-calendar-open]").first().click();
+  await page.getByRole("dialog").getByTestId("calendar").waitFor();
+  await page.screenshot({ path: join(OUT, "phone-calendar.png") });
+  await page.getByRole("dialog").locator("footer button").click();
   await context.close();
 }
 

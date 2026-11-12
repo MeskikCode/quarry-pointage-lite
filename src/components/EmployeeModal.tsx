@@ -1,7 +1,9 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { db } from "@/lib/db";
+import { deleteEmployee, historyOf } from "@/lib/employees";
 import { useI18n } from "@/lib/i18n/provider";
 import { PAY_TYPES, POSTS, POST_KEYS, type PayType, type Post, type StoredEmployee } from "@/lib/types";
 import { Button } from "./ui/Button";
@@ -35,6 +37,25 @@ export function EmployeeModal({ employee, defaultPost, onClose }: Props) {
   const [errors, setErrors] = useState<Errors>({});
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [removal, setRemoval] = useState<"idle" | "confirm" | "blocked">("idle");
+
+  // Only an employee with nothing on record can be deleted; anyone else is
+  // deactivated, so that no past month changes.
+  async function askDelete() {
+    if (!employee) return;
+    const { records, advances } = await historyOf(db, employee.id);
+    setRemoval(records > 0 || advances > 0 ? "blocked" : "confirm");
+  }
+
+  async function confirmDelete() {
+    if (!employee) return;
+    try {
+      if (await deleteEmployee(db, employee.id)) onClose();
+      else setRemoval("blocked");
+    } catch {
+      setFailed(true);
+    }
+  }
 
   // Choosing a post proposes the way that post is usually paid. The
   // supervisor can still change it: sites differ.
@@ -233,6 +254,33 @@ export function EmployeeModal({ employee, defaultPost, onClose }: Props) {
             <span className="block text-xs text-muted">{t.worker.activeHint}</span>
           </span>
         </label>
+
+        {employee ? (
+          <div className="flex flex-col gap-2 border-t border-line pt-4">
+            {removal === "blocked" ? <Alert tone="warn">{t.worker.deleteBlocked}</Alert> : null}
+            {removal === "confirm" ? (
+              <div className="grid gap-2 min-[420px]:grid-cols-2">
+                <Button variant="danger" size="lg" onClick={confirmDelete} data-action="employee-delete-confirm">
+                  {t.worker.deleteConfirm}
+                </Button>
+                <Button variant="ghost" size="lg" onClick={() => setRemoval("idle")}>
+                  {t.actions.cancel}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                size="lg"
+                icon={Trash2}
+                onClick={askDelete}
+                className="border-2"
+                data-action="employee-delete"
+              >
+                {t.worker.delete}
+              </Button>
+            )}
+          </div>
+        ) : null}
       </form>
     </Dialog>
   );

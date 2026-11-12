@@ -2,6 +2,7 @@ import { clampOvertime } from "./attendance";
 import type { PointageDB } from "./db";
 import { downloadBlob } from "./download";
 import { isISODate } from "./format";
+import { MAX_SITE_NAME, SITE_NAME_KEY } from "./settings";
 import {
   ABSENCE_REASONS,
   MAX_ADVANCE,
@@ -17,11 +18,12 @@ import {
 export const BACKUP_APP = "quarry-pointage-lite";
 
 /**
- * Version 2 added advances. Files of version 1 (no advances) are still
- * accepted and read as having none.
+ * Version 2 added advances, version 3 the site's settings. Older files are
+ * still accepted: version 1 is read as having no advances, versions 1 and 2
+ * as having no settings.
  */
-export const BACKUP_VERSION = 2;
-const SUPPORTED_VERSIONS = [1, 2];
+export const BACKUP_VERSION = 3;
+const SUPPORTED_VERSIONS = [1, 2, 3];
 
 const MAX_NOTE_LENGTH = 80;
 
@@ -32,6 +34,11 @@ export interface Backup {
   employees: (Employee & { id: number })[];
   attendance: AttendanceRecord[];
   advances: Advance[];
+  settings: BackupSettings;
+}
+
+export interface BackupSettings {
+  siteName?: string;
 }
 
 export class BackupError extends Error {
@@ -43,10 +50,11 @@ export class BackupError extends Error {
 
 /** Read everything into a backup object. */
 export async function createBackup(db: PointageDB, now = new Date()): Promise<Backup> {
-  const [employees, attendance, advances] = await Promise.all([
+  const [employees, attendance, advances, siteName] = await Promise.all([
     db.employees.toArray(),
     db.attendance.toArray(),
     db.advances.toArray(),
+    db.settings.get(SITE_NAME_KEY),
   ]);
   return {
     app: BACKUP_APP,
@@ -55,6 +63,7 @@ export async function createBackup(db: PointageDB, now = new Date()): Promise<Ba
     employees: employees as Backup["employees"],
     attendance,
     advances,
+    settings: siteName ? { siteName: siteName.value } : {},
   };
 }
 
@@ -151,6 +160,12 @@ export function parseBackup(text: string): Backup {
   // Version 1 has no advances table; from version 2 on it is required.
   const rawAdvances: unknown[] = data.version === 1 ? [] : (data.advances as unknown[]);
   if (!Array.isArray(rawAdvances)) throw new BackupError("missing advances");
+  // Settings come with version 3; older files have none.
+  const rawSettings: unknown = data.version >= 3 ? data.settings : {};
+  if (!isObject(rawSettings)) throw new BackupError("missing settings");
+  const { siteName } = rawSettings;
+  if (siteName !== undefined && (typeof siteName !== "string" || siteName.length > MAX_SITE_NAME))
+    throw new BackupError("site name");
 
   const employees = data.employees.map(parseEmployee);
   const ids = new Set(employees.map((e) => e.id));
@@ -170,18 +185,21 @@ export function parseBackup(text: string): Backup {
     employees,
     attendance,
     advances,
+    settings: siteName ? { siteName } : {},
   };
 }
 
 /** Replace the whole database with the backup, in one transaction. */
 export async function restoreBackup(db: PointageDB, backup: Backup): Promise<void> {
-  await db.transaction("rw", db.employees, db.attendance, db.advances, async () => {
+  await db.transaction("rw", [db.employees, db.attendance, db.advances, db.settings], async () => {
     await db.attendance.clear();
     await db.advances.clear();
+    await db.settings.clear();
     await db.employees.clear();
     await db.employees.bulkAdd(backup.employees);
     await db.attendance.bulkAdd(backup.attendance);
     await db.advances.bulkAdd(backup.advances);
+    if (backup.settings.siteName) await db.settings.put({ key: SITE_NAME_KEY, value: backup.settings.siteName });
   });
 }
 

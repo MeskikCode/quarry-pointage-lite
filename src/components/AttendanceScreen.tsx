@@ -10,11 +10,13 @@ import {
   ClipboardCheck,
   FileSpreadsheet,
   Moon,
+  DatabaseZap,
   ShieldCheck,
   Sun,
   UserPlus,
   Wallet,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   adjustOvertime,
@@ -24,24 +26,47 @@ import {
   undoMarkedPresent,
   type Slot,
 } from "@/lib/attendance";
+import { backupReminder, readLastBackup } from "@/lib/backupReminder";
 import { db } from "@/lib/db";
 import { addDays, formatDate, monthOf, todayISO, weekdayOf } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
 import { countShift } from "@/lib/summary";
-import { POST_KEYS, SHIFTS, TEAMS, teamOf, type Post, type Shift, type StoredEmployee, type Team } from "@/lib/types";
+import {
+  POST_KEYS,
+  SHIFTS,
+  TEAMS,
+  teamOf,
+  type AbsenceReason,
+  type Post,
+  type Shift,
+  type Status,
+  type StoredEmployee,
+  type Team,
+} from "@/lib/types";
+import { readSiteName } from "@/lib/settings";
+import { useInstall } from "@/lib/useInstall";
 import { useOnline } from "@/lib/useOnline";
 import { AttendanceCard } from "./AttendanceCard";
-import { AdvanceDialog } from "./AdvanceDialog";
-import { BackupDialog } from "./BackupDialog";
-import { EmployeeModal } from "./EmployeeModal";
-import { ExportDialog } from "./ExportDialog";
 import { FieldStatusBar } from "./FieldStatusBar";
-import { LanguageDialog } from "./LanguageDialog";
-import { MonthlySummary } from "./MonthlySummary";
 import { UpdatePrompt } from "./UpdatePrompt";
 import { Button, IconButton } from "./ui/Button";
 import { Alert } from "./ui/Feedback";
 import { cn } from "./ui/cn";
+
+/*
+ * Loaded on first use, not with the page: the dialogs and the month view are
+ * only needed after a tap. This keeps the first download and the work before
+ * the crew appears small on a modest phone. Offline, every chunk is already in
+ * the service worker's cache.
+ */
+const AdvanceDialog = dynamic(() => import("./AdvanceDialog").then((m) => m.AdvanceDialog));
+const BackupDialog = dynamic(() => import("./BackupDialog").then((m) => m.BackupDialog));
+const CalendarDialog = dynamic(() => import("./CalendarDialog").then((m) => m.CalendarDialog));
+const EmployeeModal = dynamic(() => import("./EmployeeModal").then((m) => m.EmployeeModal));
+const ExportDialog = dynamic(() => import("./ExportDialog").then((m) => m.ExportDialog));
+const LanguageDialog = dynamic(() => import("./LanguageDialog").then((m) => m.LanguageDialog));
+const MonthlySummary = dynamic(() => import("./MonthlySummary").then((m) => m.MonthlySummary));
+const SettingsDialog = dynamic(() => import("./SettingsDialog").then((m) => m.SettingsDialog));
 
 type TeamFilter = Team | "all";
 
@@ -69,6 +94,8 @@ type Panel =
   | { kind: "export" }
   | { kind: "backup" }
   | { kind: "advance"; employee: StoredEmployee }
+  | { kind: "calendar"; employee: StoredEmployee }
+  | { kind: "settings" }
   | { kind: "employee"; employee: StoredEmployee | null };
 
 const SEGMENT_ON = "border-accent bg-accent-soft text-accent";
@@ -86,6 +113,13 @@ export function AttendanceScreen() {
   const [bulk, setBulk] = useState<BulkMark | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [panel, setPanel] = useState<Panel>({ kind: "none" });
+  const install = useInstall();
+  const siteName = useLiveQuery(() => readSiteName(db), []) ?? "";
+  // Read when the screen opens and again whenever a dialog closes (a backup may just have been made).
+  const [lastBackup, setLastBackup] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : readLastBackup(),
+  );
+  const oldestRecord = useLiveQuery(() => db.attendance.orderBy("date").first(), []);
   const [storageError, setStorageError] = useState(false);
   const dateInput = useRef<HTMLInputElement>(null);
 
@@ -95,11 +129,17 @@ export function AttendanceScreen() {
     void navigator.storage?.persist?.().catch(() => undefined);
   }, []);
 
-  const employees = useLiveQuery(
-    () => db.employees.toArray() as Promise<StoredEmployee[]>,
-    [],
-  );
-  const dayRecords = useLiveQuery(() => db.attendance.where("date").equals(date).toArray(), [date]);
+  // The crew and the day's records in one query, so that they arrive together
+  // and the screen is drawn once, not twice.
+  const snapshot = useLiveQuery(async () => {
+    const [crew, day] = await Promise.all([
+      db.employees.toArray() as Promise<StoredEmployee[]>,
+      db.attendance.where("date").equals(date).toArray(),
+    ]);
+    return { crew, day };
+  }, [date]);
+  const employees = snapshot?.crew;
+  const dayRecords = snapshot?.day;
 
   const records = useMemo(
     () => (dayRecords ?? []).filter((record) => record.shift === shift),
@@ -148,7 +188,20 @@ export function AttendanceScreen() {
     operation.catch(() => setStorageError(true));
   }, []);
 
-  const slotOf = (employeeId: number): Slot => ({ employeeId, date, shift });
+  const slotOf = useCallback((employeeId: number): Slot => ({ employeeId, date, shift }), [date, shift]);
+  const onStatus = useCallback(
+    (employeeId: number, status: Status) => write(setStatus(db, slotOf(employeeId), status)),
+    [slotOf, write],
+  );
+  const onReason = useCallback(
+    (employeeId: number, reason: Exclude<AbsenceReason, "none">) => write(setReason(db, slotOf(employeeId), reason)),
+    [slotOf, write],
+  );
+  const onOvertime = useCallback(
+    (employeeId: number, delta: number) => write(adjustOvertime(db, slotOf(employeeId), delta)),
+    [slotOf, write],
+  );
+  const onEdit = useCallback((employee: StoredEmployee) => setPanel({ kind: "employee", employee }), []);
   const scope = `${date}|${shift}|${team}`;
   const undoable = bulk && bulk.scope === scope && bulk.ids.length > 0 ? bulk : null;
 
@@ -177,23 +230,14 @@ export function AttendanceScreen() {
     if (next === "month") setMonth(monthOf(date));
     setView(next);
   }
-  const closePanel = () => setPanel({ kind: "none" });
+  const closePanel = () => {
+    setPanel({ kind: "none" });
+    setLastBackup(readLastBackup());
+  };
+  const reminder = backupReminder({ lastBackup, oldestRecord: oldestRecord?.date ?? null, today: todayISO() });
+  const employeeById = (employeeId: number) => employees?.find((e) => e.id === employeeId);
   const isToday = date === todayISO();
   const loading = employees === undefined || dayRecords === undefined;
-
-  // The page is prerendered at build time. Everything below depends on the
-  // device (today's date, its language, its database), so until the device
-  // has taken over only the bar is shown, exactly as it was prerendered.
-  if (!ready) {
-    return (
-      <div className="flex min-h-dvh flex-col bg-ink">
-        <FieldStatusBar online onLanguage={() => undefined} />
-        <p role="status" className="caps py-10 text-center text-sm font-semibold text-muted">
-          {t.app.loading}
-        </p>
-      </div>
-    );
-  }
 
   // Actions: fixed to the bottom edge on phones and tablets, within thumb
   // reach. On desktop they sit in the toolbar: on their own row at first,
@@ -217,7 +261,7 @@ export function AttendanceScreen() {
           variant="secondary"
           icon={UserPlus}
           onClick={() => setPanel({ kind: "employee", employee: null })}
-          aria-label={t.worker.addTitle}
+          aria-label={`${t.actions.addWorker} — ${t.worker.addTitle}`}
           className="border-2"
         >
           <span className="max-[430px]:sr-only">{t.actions.addWorker}</span>
@@ -227,7 +271,6 @@ export function AttendanceScreen() {
           variant="secondary"
           icon={DatabaseBackup}
           onClick={() => setPanel({ kind: "backup" })}
-          aria-label={t.backup.title}
           className="border-2"
         >
           <span className="max-md:sr-only">{t.actions.backup}</span>
@@ -238,7 +281,12 @@ export function AttendanceScreen() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-ink">
-      <FieldStatusBar online={online} onLanguage={() => setPanel({ kind: "language" })} />
+      <FieldStatusBar
+        online={online}
+        siteName={siteName}
+        onLanguage={() => setPanel({ kind: "language" })}
+        onSettings={() => setPanel({ kind: "settings" })}
+      />
       <UpdatePrompt />
 
       <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-4 px-3 pt-4 pb-safe-bar sm:px-6 lg:px-8 lg:pb-8">
@@ -259,6 +307,29 @@ export function AttendanceScreen() {
         {!online ? (
           <Alert tone="warn" title={t.offline.title}>
             {t.offline.body}
+          </Alert>
+        ) : null}
+
+        {reminder.due ? (
+          <Alert
+            tone="warn"
+            title={t.reminder.title}
+            action={
+              <Button
+                variant="secondary"
+                size="lg"
+                icon={DatabaseZap}
+                onClick={() => setPanel({ kind: "backup" })}
+                className="border-2"
+                data-action="backup-reminder"
+              >
+                {t.reminder.action}
+              </Button>
+            }
+          >
+            <span data-testid="backup-reminder">
+              {reminder.daysSinceBackup === null ? t.reminder.never : t.reminder.days(reminder.daysSinceBackup)}
+            </span>
           </Alert>
         ) : null}
 
@@ -294,8 +365,12 @@ export function AttendanceScreen() {
               onMonthChange={setMonth}
               employees={employees ?? []}
               onAdvances={(employeeId) => {
-                const employee = employees?.find((e) => e.id === employeeId);
+                const employee = employeeById(employeeId);
                 if (employee) setPanel({ kind: "advance", employee });
+              }}
+              onCalendar={(employeeId) => {
+                const employee = employeeById(employeeId);
+                if (employee) setPanel({ kind: "calendar", employee });
               }}
             />
             {actionBar}
@@ -327,7 +402,6 @@ export function AttendanceScreen() {
             />
             <button
               type="button"
-              aria-label={`${t.date.pick} — ${formatDate(date)}`}
               onClick={() => {
                 const input = dateInput.current;
                 if (!input) return;
@@ -343,12 +417,16 @@ export function AttendanceScreen() {
               <CalendarDays size={22} aria-hidden className="shrink-0" />
               <span className="flex min-w-0 flex-col items-start leading-tight">
                 <span className="caps max-w-full truncate text-xs font-semibold">
-                  {isToday ? t.date.today : t.date.weekdays[weekdayOf(date)]}
-                </span>
+                  {/* The page is prerendered at build time: the date is the device's, so it
+                      is shown once the device has taken over. */}
+                  {ready ? (isToday ? t.date.today : t.date.weekdays[weekdayOf(date)]) : " "}
+                </span>{" "}
                 <span className="num text-lg font-bold" data-testid="current-date">
-                  {formatDate(date)}
+                  {ready ? formatDate(date) : "––/––/––––"}
                 </span>
               </span>
+              {/* The name is what the button shows, then what it does. */}
+              <span className="sr-only"> — {t.date.pick}</span>
             </button>
             </div>
             <IconButton
@@ -449,10 +527,18 @@ export function AttendanceScreen() {
           </Alert>
         ) : null}
 
-        {!loading && counts.unmarked > 0 ? (
-          <Button size="field" block icon={CheckCheck} onClick={markEveryonePresent} data-action="all-present">
+        {/* Shown, disabled, while the crew loads, so that nothing moves when it arrives. */}
+        {loading || counts.unmarked > 0 ? (
+          <Button
+            size="field"
+            block
+            icon={CheckCheck}
+            onClick={markEveryonePresent}
+            disabled={loading}
+            data-action="all-present"
+          >
             {t.bulk.allPresent}
-            <span className="num font-medium opacity-80">({counts.unmarked})</span>
+            <span className="num font-medium opacity-80">({loading ? "–" : counts.unmarked})</span>
           </Button>
         ) : null}
 
@@ -472,9 +558,13 @@ export function AttendanceScreen() {
 
         {/* Workers: one column on phones, up to four on wide screens. */}
         {loading ? (
-          <p role="status" className="caps py-10 text-center text-sm font-semibold text-muted">
-            {t.app.loading}
-          </p>
+          // Placeholders the size of a card, so that the page does not jump when the crew arrives.
+          <div role="status" className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3 min-[1680px]:grid-cols-4">
+            <span className="sr-only">{t.app.loading}</span>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} aria-hidden className="h-[132px] rounded-panel border border-line bg-canvas" />
+            ))}
+          </div>
         ) : visible.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-panel border border-line px-4 py-10 text-center">
             <p className="text-base text-body">{t.empty.team}</p>
@@ -490,14 +580,16 @@ export function AttendanceScreen() {
         ) : (
           <ul className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3 min-[1680px]:grid-cols-4">
             {visible.map((employee) => (
-              <li key={employee.id}>
+              // Cards off screen are laid out only when scrolled to: on a long
+              // crew this is most of the work of showing the screen.
+              <li key={employee.id} className="[contain-intrinsic-size:auto_132px] [content-visibility:auto]">
                 <AttendanceCard
                   employee={employee}
                   record={recordOf.get(employee.id)}
-                  onStatus={(status) => write(setStatus(db, slotOf(employee.id), status))}
-                  onReason={(reason) => write(setReason(db, slotOf(employee.id), reason))}
-                  onOvertime={(delta) => write(adjustOvertime(db, slotOf(employee.id), delta))}
-                  onEdit={() => setPanel({ kind: "employee", employee })}
+                  onStatus={onStatus}
+                  onReason={onReason}
+                  onOvertime={onOvertime}
+                  onEdit={onEdit}
                 />
               </li>
             ))}
@@ -520,9 +612,13 @@ export function AttendanceScreen() {
         </footer>
       </main>
 
-      <LanguageDialog open={panel.kind === "language"} onClose={closePanel} />
+      {panel.kind === "language" ? <LanguageDialog open onClose={closePanel} /> : null}
       {panel.kind === "export" ? <ExportDialog initialMonth={view === "month" ? month : monthOf(date)} onClose={closePanel} /> : null}
       {panel.kind === "backup" ? <BackupDialog onClose={closePanel} /> : null}
+      {panel.kind === "settings" ? <SettingsDialog onClose={closePanel} install={install} /> : null}
+      {panel.kind === "calendar" ? (
+        <CalendarDialog key={panel.employee.id} employee={panel.employee} month={month} onClose={closePanel} />
+      ) : null}
       {panel.kind === "advance" ? (
         <AdvanceDialog key={panel.employee.id} employee={panel.employee} month={month} onClose={closePanel} />
       ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Clock, Contrast, Minus, Pencil, Plus, X, type LucideIcon } from "lucide-react";
+import { Minus, Pencil, Plus } from "lucide-react";
+import { memo } from "react";
 import { postName } from "@/lib/export";
 import { useI18n } from "@/lib/i18n/provider";
 import {
@@ -12,37 +13,57 @@ import {
   type Status,
   type StoredEmployee,
 } from "@/lib/types";
+import { STATUS_FILL, STATUS_ICON } from "./status";
 import { Badge } from "./ui/Feedback";
 import { IconButton } from "./ui/Button";
 import { cn } from "./ui/cn";
-
-const STATUS_ICON: Record<Status, LucideIcon> = {
-  present: Check,
-  half_day: Contrast,
-  late: Clock,
-  absent: X,
-};
-
-/** Selected state per status, in the design system's status colours. */
-const STATUS_ON: Record<Status, string> = {
-  present: "border-ok bg-ok text-ink",
-  half_day: "border-info bg-info text-ink",
-  late: "border-warn bg-warn text-ink",
-  absent: "border-danger bg-danger text-white",
-};
 
 const TILE_OFF = "border-tile-line bg-tile text-white hover:border-accent";
 
 interface Props {
   employee: StoredEmployee;
   record: AttendanceRecord | undefined;
-  onStatus: (status: Status) => void;
-  onReason: (reason: Exclude<AbsenceReason, "none">) => void;
-  onOvertime: (delta: number) => void;
-  onEdit: () => void;
+  /* The same functions for every card, so that a tap re-renders only the card it changes. */
+  onStatus: (employeeId: number, status: Status) => void;
+  onReason: (employeeId: number, reason: Exclude<AbsenceReason, "none">) => void;
+  onOvertime: (employeeId: number, delta: number) => void;
+  onEdit: (employee: StoredEmployee) => void;
 }
 
-export function AttendanceCard({ employee, record, onStatus, onReason, onOvertime, onEdit }: Props) {
+const sameEmployee = (a: StoredEmployee, b: StoredEmployee) =>
+  a.id === b.id &&
+  a.fullName === b.fullName &&
+  a.cin === b.cin &&
+  a.post === b.post &&
+  a.postLabel === b.postLabel &&
+  a.payType === b.payType &&
+  a.active === b.active;
+
+const sameRecord = (a: AttendanceRecord | undefined, b: AttendanceRecord | undefined) =>
+  a === b ||
+  (a !== undefined &&
+    b !== undefined &&
+    a.status === b.status &&
+    a.reason === b.reason &&
+    a.overtimeHours === b.overtimeHours);
+
+/**
+ * The database hands back new objects after every change, so cards are
+ * compared by what they show. On a phone with a crew of thirty, a tap then
+ * redraws one card instead of thirty.
+ */
+export const AttendanceCard = memo(
+  AttendanceCardView,
+  (prev, next) =>
+    prev.onStatus === next.onStatus &&
+    prev.onReason === next.onReason &&
+    prev.onOvertime === next.onOvertime &&
+    prev.onEdit === next.onEdit &&
+    sameEmployee(prev.employee, next.employee) &&
+    sameRecord(prev.record, next.record),
+);
+
+function AttendanceCardView({ employee, record, onStatus, onReason, onOvertime, onEdit }: Props) {
   const { t } = useI18n();
   const status = record?.status;
   const overtime = record?.overtimeHours ?? 0;
@@ -57,9 +78,9 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
     >
       <header className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-md leading-snug font-bold break-words text-white" dir="auto">
+          <h2 className="text-md leading-snug font-bold break-words text-white" dir="auto">
             {employee.fullName}
-          </h3>
+          </h2>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
             <span dir="auto">{postName(employee, t)}</span>
             <Badge tone={employee.payType === "monthly" ? "brand" : "neutral"}>{t.payType[employee.payType]}</Badge>
@@ -73,16 +94,16 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
           {employee.active && status && status !== "absent" && overtime === 0 ? (
             <button
               type="button"
-              aria-label={t.overtime.add}
+              aria-label={`+1${t.overtime.unit} — ${t.overtime.add}`}
               title={t.overtime.add}
               data-overtime-quick
-              onClick={() => onOvertime(1)}
+              onClick={() => onOvertime(employee.id, 1)}
               className="press num inline-flex size-11 items-center justify-center rounded-control border-2 border-tile-line bg-tile text-sm font-bold text-white hover:border-accent focus-visible:shadow-focus"
             >
               +1{t.overtime.unit}
             </button>
           ) : null}
-          <IconButton icon={Pencil} label={`${t.actions.edit} — ${employee.fullName}`} onClick={onEdit} />
+          <IconButton icon={Pencil} label={`${t.actions.edit} — ${employee.fullName}`} onClick={() => onEdit(employee)} />
         </div>
       </header>
 
@@ -100,11 +121,11 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
                   type="button"
                   aria-pressed={on}
                   data-status={key}
-                  onClick={() => onStatus(key)}
+                  onClick={() => onStatus(employee.id, key)}
                   className={cn(
                     "press caps flex min-h-14 items-center justify-center rounded-control border-2 px-1 py-1.5",
                     "text-xs leading-none font-bold focus-visible:shadow-focus @md:flex-col @md:gap-1",
-                    on ? STATUS_ON[key] : TILE_OFF,
+                    on ? STATUS_FILL[key] : TILE_OFF,
                   )}
                 >
                   <Icon size={22} strokeWidth={2.5} aria-hidden className="shrink-0" />
@@ -128,7 +149,7 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
                       type="button"
                       aria-pressed={on}
                       data-reason={key}
-                      onClick={() => onReason(key)}
+                      onClick={() => onReason(employee.id, key)}
                       className={cn(
                         "press caps min-h-12 flex-1 rounded-chip border-2 px-3 py-1 text-xs leading-tight font-bold whitespace-nowrap",
                         "focus-visible:shadow-focus",
@@ -153,7 +174,7 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
                   variant="outline"
                   size="lg"
                   disabled={overtime <= 0}
-                  onClick={() => onOvertime(-1)}
+                  onClick={() => onOvertime(employee.id, -1)}
                 />
                 <output
                   aria-label={t.overtime.label}
@@ -169,7 +190,7 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
                   variant="outline"
                   size="lg"
                   disabled={overtime >= MAX_OVERTIME_HOURS}
-                  onClick={() => onOvertime(1)}
+                  onClick={() => onOvertime(employee.id, 1)}
                 />
               </div>
             </div>

@@ -162,7 +162,7 @@ describe("upgrading a device from version 1 of the database", () => {
     // Opened by the current version of the application.
     const db = new PointageDB(name);
     await db.open();
-    expect(db.verno).toBe(2);
+    expect(db.verno).toBe(3);
     expect(await db.employees.count()).toBe(1);
     expect(await db.attendance.count()).toBe(1);
     expect((await db.attendance.toArray())[0].overtimeHours).toBe(2);

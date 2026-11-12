@@ -45,10 +45,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Not before the saved or detected language is known: the boot script in
+    // the page's <head> has already set it, and must not be undone.
+    if (!ready) return;
     const root = document.documentElement;
     root.lang = lang;
     root.dir = directionOf(lang);
-  }, [lang]);
+    root.removeAttribute("data-lang-pending");
+  }, [lang, ready]);
 
   const setLang = useCallback((code: LanguageCode) => {
     setLangState(code);

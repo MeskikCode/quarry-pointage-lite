@@ -67,11 +67,33 @@ Any static host works. For a sub-folder (GitHub Pages serves this repository at 
 
 The service worker requires HTTPS (or `localhost`).
 
+## Speed on a modest phone
+
+Measured with Lighthouse on a simulated mid-range phone; see the README for the figures. What makes the difference:
+
+- **The whole screen is in the page as delivered.** It is prerendered without the device's date and data, so the toolbar and the crew's place appear at once; placeholders the size of a card keep the page from moving when the crew arrives.
+- **Language before the first paint.** A few lines in the page's `<head>` (`LANGUAGE_BOOT_SCRIPT`) set the device's language and direction before anything is drawn. French, the language of the prerendered page, shows at once; for another language the content waits until it is translated, rather than flashing French.
+- **One render for the data.** The crew and the day's records come from one database query, so they arrive together.
+- **One card per tap.** Cards are memoised and compared by what they show, so marking one worker redraws one card, not the whole crew.
+- **Less to download first.** The dialogs, the month view and the spreadsheet library are loaded on first use; offline, they are already in the service worker's cache.
+- **Off-screen cards are not laid out** until scrolled to (`content-visibility`), which matters on a long crew.
+
 ## Rendering
 
-The page is prerendered at build time in French. The date, the language and the data all depend on the device, so the prerendered page shows only the status bar; the rest is rendered once the browser has taken over. This keeps the first paint immediate and avoids a mismatch between the prerendered and the live page.
+The page is prerendered at build time, in French, with the whole screen but without anything that depends on the device: the date is masked and the crew is shown as placeholders. When the browser takes over, its first render is identical to the prerendered page (so React reuses it instead of redrawing it), and only then are the device's date, language and data applied. The end-to-end tests fail on any console error, which includes a mismatch between the two.
+
+## Accessibility
+
+Supervisors use the application outdoors, in gloves, often in direct sunlight; some read better in Arabic, some use a screen reader or voice control. The interface is built for that:
+
+- 56px targets for anything used during a shift, high-contrast colours from the design system, and focus that is never hidden.
+- Every button's spoken name starts with what is written on it (WCAG 2.5.3), so that voice control can use it; icon-only buttons have a name of their own.
+- Dialogs are native `<dialog>` elements: focus stays inside and Escape closes them.
+- An automated audit (axe-core, WCAG 2.1 A and AA) runs on every screen and dialog, in French and Arabic, on phone and desktop, as part of the end-to-end tests.
+
+An automated audit finds part of the problems that matter. It does not replace a session with a person using a screen reader, which has not been done.
 
 ## What is tested
 
-- **Unit (Vitest, 133 tests):** attendance rules (including the bulk "everyone present" and its undo), storage constraints, advances (validation, typed amounts, totals), the upgrade of a version 1 database, the structure of the generated Excel file (sheets, frozen rows, formats, dates, right to left), monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
-- **End to end (Playwright, 76 tests, phone and desktop):** the full attendance flow, the one-tap bulk action, the compact cards, the month summary, advances from entry to Excel and backup, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.
+- **Unit (Vitest, 164 tests):** attendance rules (including the bulk "everyone present" and its undo), storage constraints, advances (validation, typed amounts, totals), the upgrade of a version 1 database, the structure of the generated Excel file (sheets, frozen rows, formats, dates, right to left), monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
+- **End to end (Playwright, 96 tests, phone and desktop):** the full attendance flow, the one-tap bulk action, the compact cards, the month summary, advances from entry to Excel and backup, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.

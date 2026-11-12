@@ -49,7 +49,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "esbuild": "0.28.2",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.4.6",
     "fake-indexeddb": "6.2.8",
     "fflate": "0.8.3",

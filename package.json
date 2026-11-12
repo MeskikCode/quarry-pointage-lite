@@ -1,0 +1,63 @@
+{
+  "name": "quarry-pointage-lite",
+  "version": "1.0.0",
+  "description": "Offline-first attendance PWA for quarry supervisors: one tap per worker, monthly Excel export, five languages.",
+  "private": true,
+  "license": "MIT",
+  "author": "Abdelmalek MESKIK (MeskikCode) <abdelmalek@meskik.com> (https://meskikcode.com)",
+  "homepage": "https://github.com/MeskikCode/quarry-pointage-lite",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MeskikCode/quarry-pointage-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MeskikCode/quarry-pointage-lite/issues"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && node scripts/build-sw.mjs",
+    "preview": "node scripts/serve.mjs",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "icons": "node scripts/gen-icons.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "audit:layout": "node scripts/audit-layout.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
+  },
+  "dependencies": {
+    "dexie": "4.4.7",
+    "dexie-react-hooks": "4.4.0",
+    "lucide-react": "0.544.0",
+    "next": "16.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "serwist": "9.5.13",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "esbuild": "0.28.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "fake-indexeddb": "6.2.8",
+    "sharp": "0.35.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "^5",
+    "vitest": "5.1.0"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.8"
+    }
+  }
+}

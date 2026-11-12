@@ -1,0 +1,28 @@
+:root{
+  /* ---- Brand: Electric Tech Cyan ---- */
+  --cyan-50:#E6F8FF;--cyan-100:#CCF0FF;--cyan-200:#99E1FF;--cyan-300:#66D2FF;
+  --cyan-400:#33C8FF;--cyan-500:#00BFFF;--cyan-600:#00A3FF;--cyan-700:#0082CC;
+  --cyan-800:#006199;--cyan-900:#004166;
+  --brand-cyan:#00BFFF;          /* definitive brand signature */
+  --brand-cyan-deep:#00A3FF;     /* secondary tech hue */
+  --brand-cyan-wash:#CCF0FF;     /* logo secondary / outline fill */
+
+  /* ---- Industrial Slate (structural canvas, dark themes) ---- */
+  --slate-950:#0A0F1C;--slate-900:#0F172A;--slate-800:#1E293B;--slate-700:#334155;
+  --slate-600:#475569;--slate-500:#64748B;--slate-400:#94A3B8;--slate-300:#CBD5E1;
+  --slate-200:#E2E8F0;--slate-100:#F1F5F9;--slate-50:#F8FAFC;
+  --white:#FFFFFF;
+
+  /* ---- Clinical Teal (light / healthcare / print accents) ---- */
+  --teal-700:#0F766E;--teal-600:#0D9488;--teal-300:#5EEAD4;--teal-100:#CCFBF1;
+
+  /* ---- Status ---- */
+  --green-600:#16A34A;--green-100:#DCFCE7;
+  --amber-500:#F59E0B;--amber-100:#FEF3C7;
+  --red-600:#DC2626;--red-100:#FEE2E2;
+  --violet-600:#7C3AED;
+
+  /* ---- Field / high-visibility (rugged handheld assets) ---- */
+  --field-hi:#FFD400;   /* hazard-visible accent for outdoor BTP/quarry screens */
+  --field-ink:#050A14;  /* max-contrast ground under direct sunlight */
+}

@@ -1,0 +1,83 @@
+/* Semantic aliases. Default scope = light "Clean Surface Canvas".
+   Add data-theme="dark" for the "Structural Canvas" system theme. */
+:root,[data-theme="light"]{
+  --surface-page:var(--slate-50);
+  --surface-card:var(--white);
+  --surface-sunken:var(--slate-100);
+  --surface-raised:var(--white);
+  --surface-inverse:var(--slate-900);
+  --surface-accent-soft:var(--cyan-50);
+
+  --text-strong:var(--slate-900);
+  --text-body:var(--slate-700);
+  --text-muted:var(--slate-500);
+  --text-inverse:var(--white);
+  --text-accent:var(--cyan-700);
+  --text-link:var(--cyan-700);
+  --text-link-hover:var(--cyan-800);
+
+  --border-subtle:var(--slate-200);
+  --border-strong:var(--slate-300);
+
+  --action-primary:var(--brand-cyan);
+  --action-primary-hover:var(--brand-cyan-deep);
+  --action-primary-active:var(--cyan-700);
+  --action-primary-text:#04202E;
+  --action-secondary:var(--slate-100);
+  --action-secondary-text:var(--slate-800);
+
+  --status-ok:var(--green-600);--status-ok-soft:var(--green-100);
+  --status-warn:var(--amber-500);--status-warn-soft:var(--amber-100);
+  --status-error:var(--red-600);--status-error-soft:var(--red-100);
+  --status-info:var(--brand-cyan-deep);--status-info-soft:var(--cyan-50);
+  --status-clinical:var(--teal-600);--status-clinical-soft:var(--teal-100);
+
+  --table-header-bg:var(--slate-100);
+  --table-row-alt:#FBFCFE;
+  --table-border:var(--slate-200);
+
+  --shadow-card:var(--sh-2);
+  --shadow-pop:var(--sh-3);
+
+  /* Accessible ink for small text. --text-accent (cyan 700) and --text-muted
+     (slate 500) are calibrated for body copy; at the 10-12px used by
+     micro-labels, eyebrows and table headers they measure 3.8:1-4.35:1 on the
+     light canvas, under the 4.5:1 AA floor. Use these one-stop-darker aliases
+     wherever accent or muted ink drops below ~13px. (Rule proven in the
+     production website theme.) */
+  --text-accent-sm:var(--cyan-800);
+  --text-muted-sm:var(--text-body);
+}
+[data-theme="dark"]{
+  --surface-page:var(--slate-900);
+  --surface-card:var(--slate-800);
+  --surface-sunken:var(--slate-950);
+  --surface-raised:#24334D;
+  --surface-inverse:var(--white);
+  --surface-accent-soft:rgba(0,191,255,.10);
+
+  --text-strong:var(--white);
+  --text-body:var(--slate-300);
+  --text-muted:var(--slate-400);
+  --text-inverse:var(--slate-900);
+  --text-accent:var(--brand-cyan);
+  --text-link:var(--brand-cyan);
+  --text-link-hover:var(--cyan-300);
+
+  --border-subtle:#23304A;
+  --border-strong:#31425F;
+
+  --action-secondary:#23304A;
+  --action-secondary-text:var(--slate-200);
+
+  --table-header-bg:#16233B;
+  --table-row-alt:#1A2739;
+  --table-border:#23304A;
+
+  --shadow-card:0 1px 0 rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.35);
+  --shadow-pop:0 18px 44px rgba(0,0,0,.5);
+
+  /* On the dark canvas the base values already clear AA. */
+  --text-accent-sm:var(--text-accent);
+  --text-muted-sm:var(--text-muted);
+}

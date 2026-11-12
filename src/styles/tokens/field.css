@@ -1,0 +1,21 @@
+/* Field-realm additions.
+ *
+ * The MUBCS token files beside this one are copied unchanged from the
+ * MeskikCode design system. The system's field kit (ui_kits/field) and its
+ * components use a handful of values as literals; they are named here once so
+ * that no component in this application carries a raw colour.
+ */
+:root{
+  --field-tile:#16233B;          /* resting tile and panel on the field canvas */
+  --field-tile-border:#31425F;   /* 2px tile border */
+  --field-border:#23304A;        /* hairline on the dark canvas */
+  --field-scrim:rgba(10,15,28,.55); /* @kind color */ /* modal scrim */
+
+  --status-ok-ink:#15803D;       /* text on the soft ok surface */
+  --status-warn-ink:#B45309;     /* text on the soft warn surface */
+  --status-error-ink:#B91C1C;    /* text on the soft error surface */
+  --status-error-hover:#B91C1C;
+  --status-error-active:#991B1B;
+
+  --font-tifinagh:"Noto Sans Tifinagh","Montserrat",system-ui,sans-serif;
+}

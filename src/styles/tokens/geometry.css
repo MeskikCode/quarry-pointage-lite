@@ -1,0 +1,12 @@
+:root{
+  --r-0:0px;--r-xs:2px;--r-sm:4px;--r-md:6px;--r-lg:10px;--r-xl:14px;--r-2xl:20px;--r-pill:999px;
+  --r-control:6px;   /* buttons, inputs */
+  --r-card:10px;     /* surface cards */
+  --r-chip:4px;      /* squared badges — echoes the wordmark */
+
+  --bw-hair:1px;--bw-1:1px;--bw-2:2px;--bw-rail:3px;  /* rail = left accent bar on data blocks */
+  --border-light:1px solid var(--slate-200); /* @kind other */
+  --border-dark:1px solid #23304A; /* @kind other */
+  --border-focus:2px solid var(--brand-cyan); /* @kind other */
+  --grid-line:rgba(148,163,184,.18); /* @kind color */
+}

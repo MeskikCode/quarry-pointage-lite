@@ -1,0 +1,11 @@
+/* Minimal element defaults. Components carry their own styling. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--font-sans);font-size:var(--fs-base);line-height:var(--lh-normal);color:var(--text-body);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-display);color:var(--text-strong);letter-spacing:var(--ls-display);line-height:var(--lh-snug);margin:0}
+a{color:var(--text-link);text-decoration:none}
+a:hover{color:var(--text-link-hover);text-decoration:underline}
+code,kbd,samp,pre{font-family:var(--font-mono);font-size:var(--fs-sm)}
+:where([dir="rtl"]) body{font-family:var(--font-arabic)}
+:where([dir="rtl"]) h1,:where([dir="rtl"]) h2,:where([dir="rtl"]) h3,:where([dir="rtl"]) h4{font-family:var(--font-arabic);letter-spacing:0}
+::selection{background:var(--brand-cyan);color:#04202E}
+:focus-visible{outline:none;box-shadow:var(--ring-focus)}

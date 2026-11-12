@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/* MUBCS, the MeskikCode design system: token layers, in the system's order. */
+@import "../styles/fonts.css";
+@import "../styles/tokens/colors.css";
+@import "../styles/tokens/typography.css";
+@import "../styles/tokens/spacing.css";
+@import "../styles/tokens/geometry.css";
+@import "../styles/tokens/elevation.css";
+@import "../styles/tokens/motion.css";
+@import "../styles/tokens/semantic.css";
+@import "../styles/tokens/base.css";
+@import "../styles/tokens/field.css";
+
+/* Script-dependent type. Latin scripts use the MUBCS display and interface
+ * families with tracked uppercase labels. Arabic and Tifinagh have no case
+ * and never carry letter-spacing. */
+:root {
+  --type-ui: var(--font-sans);
+  --type-head: var(--font-display);
+  --type-label-tracking: var(--ls-label);
+  --type-head-tracking: var(--ls-display);
+  --type-leading: var(--lh-normal);
+}
+:root[lang="ar"] {
+  --type-ui: var(--font-arabic);
+  --type-head: var(--font-arabic);
+  --type-label-tracking: 0;
+  --type-head-tracking: 0;
+  --type-leading: var(--lh-loose);
+}
+:root[lang="zgh"] {
+  --type-ui: var(--font-tifinagh);
+  --type-head: var(--font-tifinagh);
+  --type-label-tracking: 0;
+  --type-head-tracking: 0;
+  --type-leading: var(--lh-loose);
+}
+
+/* Phone type ramp from the MUBCS website layer: small sizes step up below
+ * 720px so labels stay readable outdoors. Mobile first, restored above. */
+:root {
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13.5px;
+  --fs-base: 15px;
+}
+@media (min-width: 720px) {
+  :root {
+    --fs-2xs: 10px;
+    --fs-xs: 11px;
+    --fs-sm: 12px;
+    --fs-base: 14px;
+  }
+}
+
+/* Tailwind theme, mapped onto the tokens. Default palettes are removed so a
+ * component can only reach a colour that the design system defines. */
+@theme inline {
+  --color-*: initial;
+  --color-ink: var(--field-ink);
+  --color-canvas: var(--slate-950);
+  --color-tile: var(--field-tile);
+  --color-tile-line: var(--field-tile-border);
+  --color-line: var(--field-border);
+  --color-card: var(--surface-card);
+  --color-sunken: var(--surface-sunken);
+  --color-raised: var(--surface-raised);
+  --color-strong: var(--text-strong);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--brand-cyan);
+  --color-accent-deep: var(--brand-cyan-deep);
+  --color-accent-press: var(--cyan-700);
+  --color-accent-soft: var(--surface-accent-soft);
+  --color-on-accent: var(--action-primary-text);
+  --color-ok: var(--status-ok);
+  --color-ok-soft: var(--status-ok-soft);
+  --color-ok-ink: var(--status-ok-ink);
+  --color-info: var(--status-info);
+  --color-info-soft: var(--status-info-soft);
+  --color-info-ink: var(--cyan-800);
+  --color-warn: var(--status-warn);
+  --color-warn-soft: var(--status-warn-soft);
+  --color-warn-ink: var(--status-warn-ink);
+  --color-danger: var(--status-error);
+  --color-danger-soft: var(--status-error-soft);
+  --color-danger-ink: var(--status-error-ink);
+  --color-danger-hover: var(--status-error-hover);
+  --color-danger-press: var(--status-error-active);
+  --color-hazard: var(--field-hi);
+  --color-scrim: var(--field-scrim);
+  --color-white: var(--white);
+  --color-transparent: transparent;
+
+  --font-ui: var(--type-ui);
+  --font-head: var(--type-head);
+  --font-num: var(--font-mono);
+
+  --text-2xs: var(--fs-2xs);
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-md: var(--fs-md);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-2xl: var(--fs-2xl);
+
+  --radius-chip: var(--r-chip);
+  --radius-control: var(--r-control);
+  --radius-panel: var(--r-card);
+  --radius-modal: var(--r-xl);
+
+  --shadow-panel: var(--shadow-card);
+  --shadow-modal: var(--sh-4);
+  --shadow-glow: var(--glow-cyan);
+  --shadow-focus: var(--ring-focus);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* One weight of Tifinagh exists; never fake a bold. */
+    font-synthesis: none;
+  }
+
+  body {
+    min-height: 100dvh;
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Native date and select chrome follows the dark canvas. */
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.001ms !important;
+      animation-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Field canvas and script-dependent type. These override tokens/base.css,
+ * which is not in a cascade layer, so they are not layered either. */
+body {
+  font-family: var(--type-ui);
+  line-height: var(--type-leading);
+  background: var(--field-ink);
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--type-head);
+  letter-spacing: var(--type-head-tracking);
+}
+
+/* Structural uppercase: micro-labels, badges, field action labels. */
+@utility caps {
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+}
+
+/* Numbers, identifiers and dates: mono, tabular, always left to right. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* MUBCS control transition. */
+@utility t-control {
+  transition: var(--t-control);
+}
+
+/* Field press: tiles and field buttons scale; desktop controls never do. */
+@utility press {
+  transition:
+    var(--t-control),
+    transform var(--dur-instant) var(--ease-standard);
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* Horizontal scroller without a visible bar (zone tabs on narrow screens). */
+@utility scroll-quiet {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Space for the fixed action bar and the device's home indicator. */
+@utility pb-safe-bar {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}

@@ -85,7 +85,7 @@ export interface AttendanceRecord {
   status: Status;
   reason: AbsenceReason;
   overtimeHours: number;
-  /** Reserved for the cloud tier. Always `false` in this edition. */
+  /** Reserved for a future sync between phones. Always `false` for now. */
   synced: boolean;
 }
 

@@ -24,7 +24,7 @@ On most crushing sites around Marrakech, attendance lives in a paper notebook an
 
 Pointage Carrière replaces the notebook. The site chief opens it on a phone, taps each employee once, and the record is saved on the device. At the end of the month one button produces the Excel file the accountant needs. It works at the bottom of a riverbed with no network, in dust, with gloves on.
 
-It is a small, complete product, published in the open as an example of how MeskikCode builds: fixed scope, built for the people who use it, and working where the work happens.
+It is free to use, to adapt and to share under the MIT licence. It needs no account, no server and no subscription.
 
 **Live demo:** https://meskikcode.github.io/quarry-pointage-lite/ (open it on a phone, then install it).
 
@@ -128,22 +128,15 @@ The rules (attendance, pay, export, backup) are plain functions in `src/lib/`, t
 
 French, Arabic, English and Spanish were written by MeskikCode. **The Tamazight strings are a draft** that has not yet been reviewed by a native reader; quarry and payroll vocabulary is not fully standardised in Tifinagh. Corrections are very welcome: see [docs/translations.md](docs/translations.md).
 
-## Not in this edition
+## Scope
 
-This is the open edition, deliberately small. The following are built for clients as private work:
+The project stays small on purpose, so that it works fully offline on a single phone with nothing to set up. It does not include:
 
-- Sync between several phones and an office dashboard when the network returns
-- Linking shifts to weighbridge tickets and production tonnage
-- Full payroll: CNSS and tax deductions, loans over several months, printed pay slips
+- sync between several phones, or an office dashboard;
+- links to weighbridge tickets and production tonnage;
+- full payroll: CNSS and tax deductions, loans over several months, printed pay slips.
 
-## Custom work
-
-MeskikCode builds custom software for industry, construction and healthcare businesses in Morocco, Africa and beyond: from fragile spreadsheets to one secure system, at a fixed price agreed before work starts.
-
-- Website: https://meskikcode.com
-- Email: abdelmalek@meskik.com
-- Phone and WhatsApp: +212 657 89 01 84 · https://wa.me/212657890184
-- LinkedIn: https://www.linkedin.com/company/meskikcode/
+Ideas and needs from real sites are welcome as [issues](https://github.com/MeskikCode/quarry-pointage-lite/issues).
 
 ## Licence
 
@@ -153,5 +146,4 @@ The MeskikCode name and logo are not covered by that licence. Forks are welcome;
 
 ---
 
-Built in Marrakech, for Morocco first, then Africa, the MENA region, Europe and the world.
-MeskikCode — trading name of Abdelmalek MESKIK. *Your Vision, Our Passion.*
+Maintained by [MeskikCode](https://meskikcode.com) in Marrakech (trading name of Abdelmalek MESKIK).

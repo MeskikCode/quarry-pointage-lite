@@ -3,7 +3,7 @@
 **Organisation:** MeskikCode
 **Target environment:** river crushing and sand-washing sites (*concassage rivière et sable lavé*)
 **Shape:** offline-first Progressive Web App (Next.js, Dexie, Serwist)
-**Repository goal:** a public, open-source product showing real-world Moroccan industrial software development.
+**Repository goal:** a free, open-source attendance tool for crushing and sand-washing sites.
 
 This is the specification the project started from, kept for the record and updated where the build departed from it. Departures are marked **As built**.
 
@@ -79,7 +79,7 @@ The original blueprint assigned each worker to a fixed zone (crusher, washed san
 | `status` | `present`, `half_day`, `late`, `absent` |
 | `reason` | `none`, `non_justifie`, `maladie`, `autorise` |
 | `overtimeHours` | 0 to 12 |
-| `synced` | Reserved for a cloud edition |
+| `synced` | Reserved for a future sync between phones |
 
 Full detail: [docs/data-model.md](docs/data-model.md).
 
@@ -109,10 +109,10 @@ npm run dev
 
 See the [README](README.md).
 
-## 8. Private client extensions
+## 8. Out of scope
 
-This repository is the open edition. Client deployments by MeskikCode extend the same base with:
+To stay fully offline and simple to run on one phone, the project leaves out:
 
-- **Background sync** to a central database when connectivity returns.
+- **Sync** between several phones and a central database.
 - **Weighbridge integration**, linking shifts to weighing tickets (*bons de pesée*) and tonnage.
-- **Payroll**: Moroccan social security and tax deductions, loans repaid over several months, printable pay slips (*bulletins de paie*).
+- **Full payroll**: social security and tax deductions, loans repaid over several months, printable pay slips (*bulletins de paie*).

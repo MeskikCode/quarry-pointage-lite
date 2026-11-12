@@ -17,7 +17,7 @@ Sur la plupart des stations de concassage autour de Marrakech, le pointage tient
 
 Pointage Carrière remplace le cahier. Le chef de station l'ouvre sur son téléphone, appuie une fois par employé, et le pointage est enregistré sur l'appareil. En fin de mois, un bouton produit le fichier Excel dont le comptable a besoin. L'application fonctionne au fond d'un lit d'oued sans réseau, dans la poussière, avec des gants.
 
-C'est un petit produit complet, publié en source ouverte pour montrer comment MeskikCode travaille : un périmètre fixe, un outil conçu pour ceux qui s'en servent, et qui fonctionne là où le travail se fait.
+Il est libre d'utilisation, de modification et de partage sous licence MIT. Il ne demande ni compte, ni serveur, ni abonnement.
 
 **Démonstration :** https://meskikcode.github.io/quarry-pointage-lite/ (à ouvrir sur un téléphone, puis à installer).
 
@@ -90,22 +90,15 @@ La documentation technique est en anglais : [conception du système](docs/system
 
 Le français, l'arabe, l'anglais et l'espagnol ont été rédigés par MeskikCode. **Les textes en tamazight sont un brouillon** qui n'a pas encore été relu par un lecteur natif. Les corrections sont les bienvenues : voir [docs/translations.md](docs/translations.md).
 
-## Hors de cette édition
+## Périmètre
 
-Cette édition ouverte est volontairement réduite. Sont réalisés pour les clients, en projet privé :
+Le projet reste volontairement réduit, pour fonctionner entièrement hors ligne sur un seul téléphone, sans rien à configurer. Il ne comprend pas :
 
-- la synchronisation entre plusieurs téléphones et un tableau de bord au bureau, au retour du réseau ;
-- le lien entre les postes, les bons de pesée et le tonnage produit ;
-- la paie complète : retenues CNSS et fiscales, prêts sur plusieurs mois, bulletins imprimés.
+- la synchronisation entre plusieurs téléphones, ni de tableau de bord au bureau ;
+- le lien avec les bons de pesée et le tonnage produit ;
+- la paie complète : retenues CNSS et fiscales, prêts sur plusieurs mois, bulletins imprimés.
 
-## Projets sur mesure
-
-MeskikCode développe des logiciels sur mesure pour l'industrie, le BTP et la santé, au Maroc, en Afrique et au-delà : des fichiers Excel fragiles à un seul système sécurisé, à un prix fixe convenu avant le début des travaux.
-
-- Site : https://meskikcode.com
-- Courriel : abdelmalek@meskik.com
-- Téléphone et WhatsApp : 0657-89-01-84 · https://wa.me/212657890184
-- LinkedIn : https://www.linkedin.com/company/meskikcode/
+Les idées et les besoins venus du terrain sont les bienvenus sous forme d'[issues](https://github.com/MeskikCode/quarry-pointage-lite/issues).
 
 ## Licence
 
@@ -113,5 +106,4 @@ Le code est publié sous [licence MIT](LICENSE), copyright Abdelmalek MESKIK. Le
 
 ---
 
-Conçu à Marrakech, pour le Maroc d'abord, puis l'Afrique, la région MENA, l'Europe et le monde.
-MeskikCode — nom commercial d'Abdelmalek MESKIK. *Votre vision, notre passion.*
+Maintenu par [MeskikCode](https://meskikcode.com) à Marrakech (nom commercial d'Abdelmalek MESKIK).

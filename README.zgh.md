@@ -26,14 +26,6 @@
 
 **ⴰⵔⵎ ⵜ:** https://meskikcode.github.io/quarry-pointage-lite/
 
-## ⴰⵎⵢⴰⵡⴰⴹ
-
-- https://meskikcode.com
-- abdelmalek@meskik.com
-- +212 657 89 01 84 · https://wa.me/212657890184
-- https://www.linkedin.com/company/meskikcode/
-
 ---
 
-ⵉⵜⵜⵓⵙⴽⴰⵔ ⴳ ⵎⵕⵕⴰⴽⵛ. MeskikCode — *Your Vision, Our Passion.*
-[MIT](LICENSE) · Abdelmalek MESKIK
+ⵉⵜⵜⵓⵙⴽⴰⵔ ⴳ ⵎⵕⵕⴰⴽⵛ · [MeskikCode](https://meskikcode.com) · [MIT](LICENSE) · Abdelmalek MESKIK

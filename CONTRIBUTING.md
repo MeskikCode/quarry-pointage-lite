@@ -6,7 +6,7 @@ Thank you for looking at this project. Contributions are welcome, and the most u
 2. **Reports from real sites**: a post that is missing, a pay rule that works differently where you are, a screen that is hard to use with gloves.
 3. Bug fixes, with a test that fails before the fix.
 
-Larger features (sync, payroll deductions, weighbridge links) are outside the scope of this open edition. Please open an issue to discuss before starting work on anything substantial.
+Larger features (sync, payroll deductions, weighbridge links) are outside the project's scope; see the README. Please open an issue to discuss before starting work on anything substantial.
 
 ## Setting up
 

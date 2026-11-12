@@ -17,7 +17,7 @@ En la mayoría de las plantas de trituración de la región de Marrakech, la asi
 
 Pointage Carrière sustituye al cuaderno. El jefe de planta lo abre en su teléfono, toca una vez a cada empleado y el fichaje queda guardado en el dispositivo. A final de mes, un botón genera el archivo Excel que necesita el contable. Funciona en el fondo de un cauce sin cobertura, con polvo y con guantes.
 
-Es un producto pequeño y completo, publicado en abierto como ejemplo de cómo trabaja MeskikCode: alcance fijo, hecho para quienes lo usan y que funciona donde se trabaja.
+Es libre de usar, adaptar y compartir bajo la licencia MIT. No necesita cuenta, ni servidor, ni suscripción.
 
 **Demostración:** https://meskikcode.github.io/quarry-pointage-lite/ (abrir en un teléfono e instalar).
 
@@ -69,22 +69,15 @@ npm run dev
 
 La documentación técnica está en inglés: [diseño del sistema](docs/system-design.md), [modelo de datos](docs/data-model.md), [sistema de diseño](docs/design-system.md), [traducciones](docs/translations.md).
 
-## Fuera de esta edición
+## Alcance
 
-Esta edición abierta es reducida a propósito. Se desarrollan para clientes, como proyecto privado:
+El proyecto se mantiene pequeño a propósito, para funcionar totalmente sin conexión en un solo teléfono, sin nada que configurar. No incluye:
 
-- la sincronización entre varios teléfonos y un panel en la oficina cuando vuelve la red;
-- el enlace entre turnos, tiques de báscula y tonelaje producido;
+- la sincronización entre varios teléfonos, ni un panel en la oficina;
+- el enlace con los tiques de báscula y el tonelaje producido;
 - la nómina completa: retenciones, préstamos a varios meses y recibos de salario impresos.
 
-## Proyectos a medida
-
-MeskikCode desarrolla software a medida para empresas de industria, construcción y salud, en Marruecos, África y más allá: de hojas de cálculo frágiles a un único sistema seguro, a un precio fijo acordado antes de empezar.
-
-- Sitio web: https://meskikcode.com
-- Correo: abdelmalek@meskik.com
-- Teléfono y WhatsApp: +212 657 89 01 84 · https://wa.me/212657890184
-- LinkedIn: https://www.linkedin.com/company/meskikcode/
+Las ideas y necesidades de plantas reales son bienvenidas como [issues](https://github.com/MeskikCode/quarry-pointage-lite/issues).
 
 ## Licencia
 
@@ -92,5 +85,4 @@ El código se publica bajo la [licencia MIT](LICENSE), copyright Abdelmalek MESK
 
 ---
 
-Creado en Marrakech, primero para Marruecos, luego para África, la región MENA, Europa y el mundo.
-MeskikCode — nombre comercial de Abdelmalek MESKIK. *Your Vision, Our Passion.*
+Mantenido por [MeskikCode](https://meskikcode.com) en Marrakech (nombre comercial de Abdelmalek MESKIK).

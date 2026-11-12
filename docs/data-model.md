@@ -51,7 +51,7 @@ Keys are stored, never labels: a record entered in Arabic reads correctly in Fre
 | `status` | `"present"`, `"half_day"`, `"late"`, `"absent"` | |
 | `reason` | `"none"`, `"non_justifie"`, `"maladie"`, `"autorise"` | `"none"` unless absent |
 | `overtimeHours` | integer, 0 to 12 | Always 0 when absent |
-| `synced` | boolean | Reserved for a cloud edition; always `false` here |
+| `synced` | boolean | Reserved for a future sync between phones; always `false` for now |
 
 Indexes: `++id, &[employeeId+date+shift], date, employeeId`. The compound index is unique: there is at most one record per employee, date and shift.
 

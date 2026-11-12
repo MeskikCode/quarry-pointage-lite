@@ -154,6 +154,26 @@ export const fr = {
     reason: "Motif",
     total: "Total",
   },
+  view: {
+    label: "Affichage",
+    attendance: "Pointage",
+    month: "Bilan du mois",
+  },
+  bulk: {
+    allPresent: "Tout le monde présent",
+    done: (n: number) => (n === 1 ? "1 employé marqué présent." : `${n} employés marqués présents.`),
+    undo: "Annuler",
+  },
+  month: {
+    title: "Bilan du mois",
+    previous: "Mois précédent",
+    next: "Mois suivant",
+    totalPay: "Total estimé à payer",
+    pay: "À payer",
+    absences: "Absences",
+    empty: "Aucun pointage ce mois-ci.",
+    note: "Estimation brute, avant retenues et avances. Aide à la préparation de la paie.",
+  },
   backup: {
     title: "Sauvegarde",
     hint: "Les données n'existent que sur cet appareil. Exporter une copie régulièrement.",

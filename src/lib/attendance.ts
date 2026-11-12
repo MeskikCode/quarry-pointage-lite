@@ -113,3 +113,56 @@ export function adjustOvertime(db: PointageDB, slot: Slot, delta: number) {
     await commit(db, current, applyOvertime(current, delta));
   });
 }
+
+/* ---------------------------------------------------------------------------
+ * "Everyone present". On most days almost everyone is there, so the usual
+ * way to take attendance is one tap for the whole crew, then a correction
+ * for the few exceptions.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Mark every listed employee present who has no record yet for this date and
+ * shift. Anyone already marked (absent, late, half day) is left untouched.
+ * Returns the ids of the records created, so that they can be undone.
+ */
+export function markUnmarkedPresent(
+  db: PointageDB,
+  employeeIds: number[],
+  date: string,
+  shift: Shift,
+): Promise<number[]> {
+  return db.transaction("rw", db.attendance, async () => {
+    const existing = await db.attendance.where("date").equals(date).toArray();
+    const marked = new Set(existing.filter((r) => r.shift === shift).map((r) => r.employeeId));
+    const created: AttendanceRecord[] = employeeIds
+      .filter((employeeId) => !marked.has(employeeId))
+      .map((employeeId) => ({
+        employeeId,
+        date,
+        shift,
+        status: "present",
+        reason: "none",
+        overtimeHours: 0,
+        synced: false,
+      }));
+    if (created.length === 0) return [];
+    return (await db.attendance.bulkAdd(created, { allKeys: true })) as number[];
+  });
+}
+
+/**
+ * Undo `markUnmarkedPresent`. A record is removed only while it is still
+ * exactly what the bulk action wrote (present, no overtime): one that the
+ * supervisor has since corrected is kept.
+ */
+export function undoMarkedPresent(db: PointageDB, recordIds: number[]): Promise<number> {
+  return db.transaction("rw", db.attendance, async () => {
+    const records = await db.attendance.bulkGet(recordIds);
+    const untouched = records
+      .filter((r): r is NonNullable<typeof r> => r !== undefined)
+      .filter((r) => r.status === "present" && r.overtimeHours === 0)
+      .map((r) => r.id as number);
+    await db.attendance.bulkDelete(untouched);
+    return untouched.length;
+  });
+}

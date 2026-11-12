@@ -6,7 +6,7 @@
 
 <p>
   <img src="docs/screenshots/phone-fr.png" alt="Écran de pointage en français sur téléphone" width="24%">
-  <img src="docs/screenshots/phone-absence.png" alt="Absence avec son motif" width="24%">
+  <img src="docs/screenshots/phone-month.png" alt="Bilan du mois : jours, absences, heures supplémentaires et paie par employé" width="24%">
   <img src="docs/screenshots/phone-employee.png" alt="Fiche employé, paie mensuelle ou journalière" width="24%">
   <img src="docs/screenshots/phone-offline.png" alt="Mode hors ligne" width="24%">
 </p>
@@ -23,9 +23,11 @@ C'est un petit produit complet, publié en source ouverte pour montrer comment M
 
 ## Ce que fait l'application
 
-- **Pointage en un appui.** Présent, demi-journée, retard ou absent. Une absence porte un motif : non justifiée, maladie ou autorisée. Un second appui sur le statut choisi l'efface.
+- **Tout le monde présent en un appui.** La plupart des jours, presque tout le monde est là. Un bouton marque toute l'équipe présente (ou une seule équipe), puis on corrige les quelques exceptions. L'action s'annule, et elle n'écrase jamais quelqu'un déjà pointé.
+- **Pointage en un appui.** Présent, demi-journée, retard ou absent, sur une seule rangée de grands boutons. Une absence porte un motif : non justifiée, maladie ou autorisée. Un second appui sur le statut choisi l'efface.
+- **Le mois en un coup d'œil.** Pour chaque employé : jours travaillés, absences, heures supplémentaires et paie à verser, avec le total du mois, dans l'application et pas seulement dans le fichier Excel.
 - **Postes de jour et de nuit**, chacun avec ses pointages, à n'importe quelle date.
-- **Heures supplémentaires** par employé et par poste.
+- **Heures supplémentaires** par employé et par poste : un bouton « +1 h », qui ouvre un compteur dès qu'il y a des heures à ajuster.
 - **L'effectif réel d'une station.** Chef concassage, chef matériel, comptable, électricien-opérateur, soudeur, conducteurs de chargeuse, de pelle et de camion, ouvriers et gardiens. Tout autre poste (pompiste, agent de pesée, magasinier) se saisit avec son propre intitulé, car aucune station n'a le même effectif.
 - **Deux modes de paie**, comme sur le terrain :
   - *Mensuel* : sous contrat. Le salaire est dû pour le mois même si des jours manquent, et les heures supplémentaires sont payables.
@@ -66,7 +68,7 @@ npm run build        # export statique dans out/, avec le service worker
 npm run preview      # sert out/ sur http://localhost:4173
 ```
 
-Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (68 tests unitaires), `npm run test:e2e` (56 tests de bout en bout, téléphone et bureau).
+Vérifications : `npm run lint`, `npm run typecheck`, `npm test` (75 tests unitaires), `npm run test:e2e` (66 tests de bout en bout, téléphone et bureau).
 
 ## Comment c'est construit
 

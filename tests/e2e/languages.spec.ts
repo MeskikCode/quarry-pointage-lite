@@ -39,8 +39,7 @@ for (const language of LANGUAGES) {
     expect(loaded).toBe(true);
 
     // Numbers and identifiers stay left to right in every language.
-    const cin = card(page, "Mohamed Bouzidi").getByText("EE100001");
-    await expect(cin).toHaveCSS("direction", "ltr");
+    await expect(page.getByTestId("current-date")).toHaveCSS("direction", "ltr");
 
     // The choice survives a reload.
     await page.reload();

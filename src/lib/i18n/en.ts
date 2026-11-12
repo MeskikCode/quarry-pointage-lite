@@ -151,6 +151,26 @@ export const en: Dictionary = {
     reason: "Reason",
     total: "Total",
   },
+  view: {
+    label: "View",
+    attendance: "Attendance",
+    month: "Month summary",
+  },
+  bulk: {
+    allPresent: "Everyone present",
+    done: (n) => (n === 1 ? "1 employee marked present." : `${n} employees marked present.`),
+    undo: "Undo",
+  },
+  month: {
+    title: "Month summary",
+    previous: "Previous month",
+    next: "Next month",
+    totalPay: "Estimated total to pay",
+    pay: "To pay",
+    absences: "Absences",
+    empty: "No attendance this month.",
+    note: "Gross estimate, before deductions and advances. A payroll preparation aid.",
+  },
   backup: {
     title: "Backup",
     hint: "The data exists only on this device. Export a copy regularly.",

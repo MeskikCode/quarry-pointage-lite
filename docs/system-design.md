@@ -72,5 +72,5 @@ The page is prerendered at build time in French. The date, the language and the 
 
 ## What is tested
 
-- **Unit (Vitest, 68 tests):** attendance rules, storage constraints, monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
-- **End to end (Playwright, 56 tests, phone and desktop):** the full attendance flow, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.
+- **Unit (Vitest, 75 tests):** attendance rules (including the bulk "everyone present" and its undo), storage constraints, monthly totals, pay for both pay types, Excel content read back from a real workbook, backup round trip and refusal of malformed files, dictionary parity across languages.
+- **End to end (Playwright, 66 tests, phone and desktop):** the full attendance flow, the one-tap bulk action, the compact cards, the month summary, employee management, each language with its direction and font, widths from 320 to 1920px in every language, Excel export read back and checked, backup and restore, a cold boot with the network cut, export with no network, and a check that no request leaves the origin.

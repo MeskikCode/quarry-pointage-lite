@@ -63,8 +63,8 @@ Mobile first. The base styles are the phone layout; wider screens add columns.
 
 | Width | Layout |
 | --- | --- |
-| from 320px | One column. Team filter scrolls sideways. Actions fixed to the bottom edge |
-| from 640px | Dialogs become centred panels. Team filter wraps |
+| from 320px | One column. Team filter scrolls sideways. Actions fixed to the bottom edge. Status buttons show icon and colour only |
+| from 640px | Dialogs become centred panels. Team filter wraps. Status buttons show their label under the icon wherever a card is 448px wide or more (container query, so it follows the card, not the screen) |
 | from 768px | Two columns of employees |
 | from 1024px | Date and shift on one row; actions join the toolbar |
 | from 1280px | Three columns |

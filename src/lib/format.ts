@@ -66,3 +66,10 @@ export function formatMoney(value: number): string {
 export function formatDays(value: number): string {
   return Number.isInteger(value) ? formatNumber(value) : formatNumber(value, 1);
 }
+
+/** Shift a `YYYY-MM` month by a number of months. */
+export function addMonths(month: string, months: number): string {
+  const [y, m] = month.split("-").map(Number);
+  const date = new Date(y, m - 1 + months, 1);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}

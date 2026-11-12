@@ -29,7 +29,8 @@ for (const width of WIDTHS) {
     await page.locator("article").nth(1).locator('[data-status="present"]').click();
     await page.evaluate(() => document.fonts.ready);
 
-    const found = await page.evaluate(() => {
+    const inspect = () =>
+      page.evaluate(() => {
       const root = document.documentElement;
       const describe = (el) =>
         `${el.tagName.toLowerCase()}${el.dataset.status ? `[status=${el.dataset.status}]` : ""}` +
@@ -51,7 +52,11 @@ for (const width of WIDTHS) {
         }
       }
       return issues;
-    });
+      });
+    const found = await inspect();
+    await page.locator("[data-view=month]").click();
+    await page.getByTestId("month-total").waitFor();
+    for (const issue of await inspect()) found.push(`[month] ${issue}`);
 
     for (const issue of found) {
       problems += 1;

@@ -3,17 +3,27 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   CalendarDays,
+  CheckCheck,
   ChevronLeft,
   ChevronRight,
   DatabaseBackup,
+  ClipboardCheck,
   FileSpreadsheet,
   Moon,
   ShieldCheck,
   Sun,
   UserPlus,
+  Wallet,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { adjustOvertime, setReason, setStatus, type Slot } from "@/lib/attendance";
+import {
+  adjustOvertime,
+  markUnmarkedPresent,
+  setReason,
+  setStatus,
+  undoMarkedPresent,
+  type Slot,
+} from "@/lib/attendance";
 import { db } from "@/lib/db";
 import { addDays, formatDate, monthOf, todayISO, weekdayOf } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
@@ -26,6 +36,7 @@ import { EmployeeModal } from "./EmployeeModal";
 import { ExportDialog } from "./ExportDialog";
 import { FieldStatusBar } from "./FieldStatusBar";
 import { LanguageDialog } from "./LanguageDialog";
+import { MonthlySummary } from "./MonthlySummary";
 import { UpdatePrompt } from "./UpdatePrompt";
 import { Button, IconButton } from "./ui/Button";
 import { Alert } from "./ui/Feedback";
@@ -42,6 +53,15 @@ const FIRST_POST: Record<TeamFilter, Post> = {
   ouvriers: "ouvrier",
   gardiens: "gardien",
 };
+type View = "attendance" | "month";
+
+/** What the last "everyone present" tap wrote, for the undo notice. */
+interface BulkMark {
+  ids: number[];
+  /** Date, shift and team the tap applied to. The notice disappears when any of them changes. */
+  scope: string;
+}
+
 type Panel =
   | { kind: "none" }
   | { kind: "language" }
@@ -59,6 +79,9 @@ export function AttendanceScreen() {
   const [date, setDate] = useState(todayISO);
   const [shift, setShift] = useState<Shift>("jour");
   const [team, setTeam] = useState<TeamFilter>("all");
+  const [view, setView] = useState<View>("attendance");
+  const [month, setMonth] = useState(() => monthOf(todayISO()));
+  const [bulk, setBulk] = useState<BulkMark | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [panel, setPanel] = useState<Panel>({ kind: "none" });
   const [storageError, setStorageError] = useState(false);
@@ -124,6 +147,34 @@ export function AttendanceScreen() {
   }, []);
 
   const slotOf = (employeeId: number): Slot => ({ employeeId, date, shift });
+  const scope = `${date}|${shift}|${team}`;
+  const undoable = bulk && bulk.scope === scope && bulk.ids.length > 0 ? bulk : null;
+
+  async function markEveryonePresent() {
+    const crew = active.filter((e) => team === "all" || teamOf(e.post) === team).map((e) => e.id);
+    try {
+      const ids = await markUnmarkedPresent(db, crew, date, shift);
+      setBulk({ ids, scope });
+    } catch {
+      setStorageError(true);
+    }
+  }
+
+  async function undoEveryonePresent() {
+    if (!undoable) return;
+    try {
+      await undoMarkedPresent(db, undoable.ids);
+    } catch {
+      setStorageError(true);
+    }
+    setBulk(null);
+  }
+
+  function openView(next: View) {
+    // The month shown follows the date being worked on.
+    if (next === "month") setMonth(monthOf(date));
+    setView(next);
+  }
   const closePanel = () => setPanel({ kind: "none" });
   const isToday = date === todayISO();
   const loading = employees === undefined || dayRecords === undefined;
@@ -141,6 +192,47 @@ export function AttendanceScreen() {
       </div>
     );
   }
+
+  // Actions: fixed to the bottom edge on phones and tablets, within thumb
+  // reach. On desktop they sit in the toolbar: on their own row at first,
+  // beside the date and shift on very wide screens. The cyan primary is the
+  // action of the moment: "everyone present" while taking attendance, the
+  // export while reading the month.
+  const actionBar = (
+    <div className="fixed inset-x-0 bottom-0 z-20 min-w-0 border-t-2 border-line bg-ink px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 lg:static lg:z-auto lg:col-span-2 lg:border-0 lg:bg-transparent lg:p-0 2xl:col-span-1">
+      <div className="mx-auto flex max-w-[1600px] items-stretch gap-2 lg:justify-end">
+        <Button
+          size="field"
+          variant={view === "month" ? "primary" : "secondary"}
+          icon={FileSpreadsheet}
+          onClick={() => setPanel({ kind: "export" })}
+          className={cn("min-w-0 flex-1 lg:flex-none", view === "attendance" && "border-2")}
+        >
+          {t.actions.export}
+        </Button>
+        <Button
+          size="field"
+          variant="secondary"
+          icon={UserPlus}
+          onClick={() => setPanel({ kind: "employee", employee: null })}
+          aria-label={t.worker.addTitle}
+          className="border-2"
+        >
+          <span className="max-[430px]:sr-only">{t.actions.addWorker}</span>
+        </Button>
+        <Button
+          size="field"
+          variant="secondary"
+          icon={DatabaseBackup}
+          onClick={() => setPanel({ kind: "backup" })}
+          aria-label={t.backup.title}
+          className="border-2"
+        >
+          <span className="max-md:sr-only">{t.actions.backup}</span>
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-dvh flex-col bg-ink">
@@ -168,7 +260,41 @@ export function AttendanceScreen() {
           </Alert>
         ) : null}
 
+        <div role="group" aria-label={t.view.label} className="grid grid-cols-2 gap-2 lg:max-w-xl">
+          {(
+            [
+              { key: "attendance", label: t.view.attendance, icon: ClipboardCheck },
+              { key: "month", label: t.view.month, icon: Wallet },
+            ] as const
+          ).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={view === key}
+              data-view={key}
+              onClick={() => openView(key)}
+              className={cn(
+                "press caps flex min-h-14 items-center justify-center gap-2 rounded-control border-2 px-2 text-base leading-tight font-bold",
+                "focus-visible:shadow-focus",
+                view === key ? SEGMENT_ON : SEGMENT_OFF,
+              )}
+            >
+              <Icon size={20} aria-hidden className="shrink-0" />
+              <span className="min-w-0 break-words">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {view === "month" ? (
+          <>
+            <MonthlySummary month={month} onMonthChange={setMonth} employees={employees ?? []} />
+            {actionBar}
+          </>
+        ) : null}
+
         {/* Date, shift and actions. One column on phones, one row on desktop. */}
+        {view === "attendance" ? (
+        <>
         <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_18rem_auto]">
           <div className="flex items-center gap-2">
             <IconButton
@@ -249,41 +375,7 @@ export function AttendanceScreen() {
             })}
           </div>
 
-          {/* Actions: fixed to the bottom edge on phones and tablets, within
-              thumb reach. On desktop they sit in the toolbar: on their own
-              row at first, beside the date and shift on very wide screens. */}
-          <div className="fixed inset-x-0 bottom-0 z-20 min-w-0 border-t-2 border-line bg-ink px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 lg:static lg:z-auto lg:col-span-2 lg:border-0 lg:bg-transparent lg:p-0 2xl:col-span-1">
-            <div className="mx-auto flex max-w-[1600px] items-stretch gap-2 lg:justify-end">
-              <Button
-                size="field"
-                icon={FileSpreadsheet}
-                onClick={() => setPanel({ kind: "export" })}
-                className="min-w-0 flex-1 lg:flex-none"
-              >
-                {t.actions.export}
-              </Button>
-              <Button
-                size="field"
-                variant="secondary"
-                icon={UserPlus}
-                onClick={() => setPanel({ kind: "employee", employee: null })}
-                aria-label={t.worker.addTitle}
-                className="border-2"
-              >
-                <span className="max-[430px]:sr-only">{t.actions.addWorker}</span>
-              </Button>
-              <Button
-                size="field"
-                variant="secondary"
-                icon={DatabaseBackup}
-                onClick={() => setPanel({ kind: "backup" })}
-                aria-label={t.backup.title}
-                className="border-2"
-              >
-                <span className="max-md:sr-only">{t.actions.backup}</span>
-              </Button>
-            </div>
-          </div>
+          {actionBar}
         </section>
 
         {/* Team filter: a horizontal scroller on phones, a wrapped row above. */}
@@ -334,6 +426,26 @@ export function AttendanceScreen() {
           ))}
         </dl>
 
+        {undoable ? (
+          <Alert
+            tone="ok"
+            action={
+              <Button variant="outline" size="lg" onClick={undoEveryonePresent}>
+                {t.bulk.undo}
+              </Button>
+            }
+          >
+            <span data-testid="bulk-done">{t.bulk.done(undoable.ids.length)}</span>
+          </Alert>
+        ) : null}
+
+        {!loading && counts.unmarked > 0 ? (
+          <Button size="field" block icon={CheckCheck} onClick={markEveryonePresent} data-action="all-present">
+            {t.bulk.allPresent}
+            <span className="num font-medium opacity-80">({counts.unmarked})</span>
+          </Button>
+        ) : null}
+
         {inactiveCount > 0 ? (
           <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-body">
             <input
@@ -382,6 +494,9 @@ export function AttendanceScreen() {
           </ul>
         )}
 
+        </>
+        ) : null}
+
         <footer className="mt-auto flex flex-col gap-1 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-2">
             <ShieldCheck size={15} aria-hidden className="shrink-0 text-accent" />
@@ -396,7 +511,7 @@ export function AttendanceScreen() {
       </main>
 
       <LanguageDialog open={panel.kind === "language"} onClose={closePanel} />
-      {panel.kind === "export" ? <ExportDialog initialMonth={monthOf(date)} onClose={closePanel} /> : null}
+      {panel.kind === "export" ? <ExportDialog initialMonth={view === "month" ? month : monthOf(date)} onClose={closePanel} /> : null}
       {panel.kind === "backup" ? <BackupDialog onClose={closePanel} /> : null}
       {panel.kind === "employee" ? (
         <EmployeeModal

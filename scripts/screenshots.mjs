@@ -25,13 +25,17 @@ async function open(options, lang) {
   await page.goto(URL);
   await page.locator("article").first().waitFor();
   const cards = page.locator("article");
-  const marks = ["present", "present", "late", "present", "half_day", "present", "absent", "present"];
-  for (const [index, status] of marks.entries()) {
-    await cards.nth(index).locator(`[data-status="${status}"]`).click();
-  }
-  await cards.nth(0).getByRole("button").nth(-1).click(); // one hour of overtime
-  await cards.nth(0).getByRole("button").nth(-1).click();
+  // The way a real day goes: one tap for the whole crew, then the exceptions.
+  await page.locator('[data-action="all-present"]').click();
+  await page.getByTestId("bulk-done").waitFor();
+  await cards.nth(2).locator('[data-status="late"]').click();
+  await cards.nth(4).locator('[data-status="half_day"]').click();
+  await cards.nth(6).locator('[data-status="absent"]').click();
   await cards.nth(6).locator('[data-reason="maladie"]').click();
+  await cards.nth(9).locator('[data-status="absent"]').click();
+  // Two hours of overtime for the first driver.
+  await cards.nth(5).locator("[data-overtime-quick]").click();
+  await cards.nth(5).locator("[data-overtime] + button").click();
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => window.scrollTo(0, 0));
   return { context, page };
@@ -68,6 +72,23 @@ for (const lang of ["fr", "ar", "zgh", "en", "es"]) {
   await page.evaluate(() => window.dispatchEvent(new Event("offline")));
   await page.getByText("Mode hors ligne").waitFor();
   await page.screenshot({ path: join(OUT, "phone-offline.png") });
+  await context.close();
+}
+
+{
+  const { context, page } = await open(phone, "fr");
+  await page.locator('[data-view="month"]').click();
+  await page.getByTestId("month-total").waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: join(OUT, "phone-month.png") });
+  await context.close();
+}
+
+{
+  const { context, page } = await open({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 }, "fr");
+  await page.locator('[data-view="month"]').click();
+  await page.getByTestId("month-total").waitFor();
+  await page.screenshot({ path: join(OUT, "desktop-month.png") });
   await context.close();
 }
 

@@ -8,8 +8,10 @@ First public release.
 
 ### Added
 
-- One-tap attendance per employee, date and shift (day or night): present, half day, late, absent with a reason (unjustified, sick, authorised). A second tap clears the record.
-- Overtime hours per record, from 0 to 12.
+- One-tap attendance per employee, date and shift (day or night): present, half day, late, absent with a reason (unjustified, sick, authorised), in one row of four large buttons. A second tap clears the record.
+- "Everyone present": one button marks every unmarked employee present, for the whole crew or the filtered team. It never overwrites an employee already marked, and it can be undone; the undo keeps any record corrected since.
+- Month summary in the application: days worked, absences, overtime and pay due per employee, and the total for the month, with month navigation.
+- Overtime hours per record, from 0 to 12, with a "+1 h" button that opens a stepper once there is overtime, so that a marked card stays short.
 - Staff model of a crushing and sand-washing site: eleven posts in five teams, with a free title for any other post.
 - Two pay types. Monthly: the salary is due for the month and overtime is payable. Daily: paid per day worked, overtime paid only when an hourly rate is set.
 - Employee management on the device: add, edit, deactivate and reactivate, with history kept.
@@ -19,7 +21,7 @@ First public release.
 - Five languages: Tamazight (Tifinagh), Arabic (right to left), French, English, Spanish. The Tamazight strings are a draft awaiting review by a native reader.
 - Mobile-first layout, checked from 320 to 1920px in every language.
 - MeskikCode design system (MUBCS) in its field theme, with self-hosted fonts.
-- 68 unit tests and 56 end-to-end tests; continuous integration and GitHub Pages deployment workflows.
+- 75 unit tests and 66 end-to-end tests; continuous integration and GitHub Pages deployment workflows.
 
 ### Changed from the original blueprint
 

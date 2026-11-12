@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { buildExportTables, buildWorkbook, exportFileName, safeSheetName } from "@/lib/export";
 import {
   addDays,
+  addMonths,
   formatDate,
   formatDays,
   formatMoney,
@@ -233,5 +234,14 @@ describe("formatting", () => {
     expect(formatMoney(1234.5)).toBe("1 234,50 MAD");
     expect(formatDays(12)).toBe("12");
     expect(formatDays(12.5)).toBe("12,5");
+  });
+});
+
+describe("month navigation", () => {
+  it("moves across year ends", () => {
+    expect(addMonths("2026-12", 1)).toBe("2027-01");
+    expect(addMonths("2026-01", -1)).toBe("2025-12");
+    expect(addMonths("2026-11", 0)).toBe("2026-11");
+    expect(addMonths("2026-11", 14)).toBe("2028-01");
   });
 });

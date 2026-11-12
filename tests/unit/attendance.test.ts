@@ -6,8 +6,10 @@ import {
   applyReason,
   applyStatus,
   clampOvertime,
+  markUnmarkedPresent,
   setReason,
   setStatus,
+  undoMarkedPresent,
   type Slot,
 } from "@/lib/attendance";
 import { PointageDB, SEED_EMPLOYEES } from "@/lib/db";
@@ -124,5 +126,66 @@ describe("attendance storage", () => {
     await adjustOvertime(db, slot, 1);
     await setReason(db, slot, "maladie");
     expect(await db.attendance.count()).toBe(0);
+  });
+});
+
+describe("everyone present", () => {
+  let db: PointageDB;
+  let ids: number[];
+  const day = "2026-11-12";
+
+  beforeEach(async () => {
+    db = new PointageDB(`bulk-${Math.random()}`);
+    await db.open();
+    ids = (await db.employees.toArray()).map((e) => e.id as number);
+  });
+
+  it("marks the whole crew present in one operation", async () => {
+    const created = await markUnmarkedPresent(db, ids, day, "jour");
+    expect(created).toHaveLength(ids.length);
+    const records = await db.attendance.toArray();
+    expect(records).toHaveLength(ids.length);
+    expect(records.every((r) => r.status === "present" && r.reason === "none" && r.overtimeHours === 0)).toBe(true);
+  });
+
+  it("leaves anyone already marked untouched", async () => {
+    await setStatus(db, { employeeId: ids[0], date: day, shift: "jour" }, "absent");
+    await setStatus(db, { employeeId: ids[1], date: day, shift: "jour" }, "late");
+    const created = await markUnmarkedPresent(db, ids, day, "jour");
+    expect(created).toHaveLength(ids.length - 2);
+    const all = await db.attendance.toArray();
+    expect(all.find((r) => r.employeeId === ids[0])!.status).toBe("absent");
+    expect(all.find((r) => r.employeeId === ids[1])!.status).toBe("late");
+  });
+
+  it("works on one shift and one date at a time", async () => {
+    await markUnmarkedPresent(db, ids, day, "jour");
+    expect(await markUnmarkedPresent(db, ids, day, "jour")).toEqual([]);
+    expect(await markUnmarkedPresent(db, ids, day, "nuit")).toHaveLength(ids.length);
+    expect(await markUnmarkedPresent(db, ids, "2026-11-13", "jour")).toHaveLength(ids.length);
+  });
+
+  it("only touches the employees it is given", async () => {
+    const created = await markUnmarkedPresent(db, ids.slice(0, 3), day, "jour");
+    expect(created).toHaveLength(3);
+    expect(await db.attendance.count()).toBe(3);
+  });
+
+  it("undoes exactly what it wrote", async () => {
+    await setStatus(db, { employeeId: ids[0], date: day, shift: "jour" }, "absent");
+    const created = await markUnmarkedPresent(db, ids, day, "jour");
+    expect(await undoMarkedPresent(db, created)).toBe(created.length);
+    const left = await db.attendance.toArray();
+    expect(left).toHaveLength(1);
+    expect(left[0].status).toBe("absent");
+  });
+
+  it("keeps a record the supervisor corrected after the bulk action", async () => {
+    const created = await markUnmarkedPresent(db, ids, day, "jour");
+    await setStatus(db, { employeeId: ids[2], date: day, shift: "jour" }, "absent");
+    await adjustOvertime(db, { employeeId: ids[3], date: day, shift: "jour" }, 2);
+    expect(await undoMarkedPresent(db, created)).toBe(created.length - 2);
+    const left = await db.attendance.toArray();
+    expect(left.map((r) => r.employeeId).sort()).toEqual([ids[2], ids[3]].sort());
   });
 });

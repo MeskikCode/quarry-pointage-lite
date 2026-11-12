@@ -51,35 +51,46 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
     <article
       aria-label={employee.fullName}
       className={cn(
-        "flex flex-col gap-3 rounded-panel border border-line bg-canvas p-3 sm:p-4",
+        "@container flex flex-col gap-2.5 rounded-panel border border-line bg-canvas p-3",
         !employee.active && "opacity-70",
       )}
     >
       <header className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-lg leading-snug font-bold break-words text-white" dir="auto">
+          <h3 className="text-md leading-snug font-bold break-words text-white" dir="auto">
             {employee.fullName}
           </h3>
-          <p className="mt-0.5 text-sm text-muted" dir="auto">
-            {postName(employee, t)}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+            <span dir="auto">{postName(employee, t)}</span>
             <Badge tone={employee.payType === "monthly" ? "brand" : "neutral"}>{t.payType[employee.payType]}</Badge>
-            {employee.cin ? <span className="num text-xs text-muted">{employee.cin}</span> : null}
             {!employee.active ? <Badge tone="warn">{t.worker.inactive}</Badge> : null}
-          </div>
+          </p>
         </div>
-        <IconButton
-          icon={Pencil}
-          label={`${t.actions.edit} — ${employee.fullName}`}
-          onClick={onEdit}
-          className="-me-1 -mt-1"
-        />
+        <div className="-me-1.5 -mt-1.5 flex shrink-0 items-center gap-1">
+          {/* Overtime is the exception, so a marked card offers a single "+1 h"
+              and keeps its height. The full stepper appears once there is
+              overtime to adjust. */}
+          {employee.active && status && status !== "absent" && overtime === 0 ? (
+            <button
+              type="button"
+              aria-label={t.overtime.add}
+              title={t.overtime.add}
+              data-overtime-quick
+              onClick={() => onOvertime(1)}
+              className="press num inline-flex size-11 items-center justify-center rounded-control border-2 border-tile-line bg-tile text-sm font-bold text-white hover:border-accent focus-visible:shadow-focus"
+            >
+              +1{t.overtime.unit}
+            </button>
+          ) : null}
+          <IconButton icon={Pencil} label={`${t.actions.edit} — ${employee.fullName}`} onClick={onEdit} />
+        </div>
       </header>
 
       {employee.active ? (
         <>
-          <div role="group" aria-label={t.sheet.status} className="grid grid-cols-2 gap-2">
+          {/* One row of four. On a narrow card the buttons show their icon and
+              colour; the label appears as soon as the card is wide enough. */}
+          <div role="group" aria-label={t.sheet.status} className="grid grid-cols-4 gap-2">
             {STATUSES.map((key) => {
               const Icon = STATUS_ICON[key];
               const on = status === key;
@@ -91,13 +102,13 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
                   data-status={key}
                   onClick={() => onStatus(key)}
                   className={cn(
-                    "press caps flex min-h-14 items-center justify-center gap-2 rounded-control border-2 px-2 py-1.5",
-                    "text-base leading-tight font-bold focus-visible:shadow-focus",
+                    "press caps flex min-h-14 items-center justify-center rounded-control border-2 px-1 py-1.5",
+                    "text-xs leading-none font-bold focus-visible:shadow-focus @md:flex-col @md:gap-1",
                     on ? STATUS_ON[key] : TILE_OFF,
                   )}
                 >
-                  <Icon size={20} strokeWidth={2.5} aria-hidden className="shrink-0" />
-                  <span>{t.status[key]}</span>
+                  <Icon size={22} strokeWidth={2.5} aria-hidden className="shrink-0" />
+                  <span className="sr-only @md:not-sr-only @md:text-center">{t.status[key]}</span>
                 </button>
               );
             })}
@@ -132,7 +143,7 @@ export function AttendanceCard({ employee, record, onStatus, onReason, onOvertim
             </div>
           ) : null}
 
-          {status && status !== "absent" ? (
+          {status && status !== "absent" && overtime > 0 ? (
             <div className="flex items-center justify-between gap-3">
               <p className="caps text-xs font-semibold text-muted">{t.overtime.label}</p>
               <div className="flex items-center gap-2">

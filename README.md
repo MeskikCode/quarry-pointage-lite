@@ -6,9 +6,9 @@
 
 <p>
   <img src="docs/screenshots/phone-fr.png" alt="Attendance screen in French on a phone" width="24%">
+  <img src="docs/screenshots/phone-month.png" alt="Month summary: days worked, absences, overtime and pay due per employee" width="24%">
   <img src="docs/screenshots/phone-ar.png" alt="Attendance screen in Arabic, right to left" width="24%">
   <img src="docs/screenshots/phone-zgh.png" alt="Attendance screen in Tamazight, in Tifinagh" width="24%">
-  <img src="docs/screenshots/phone-employee.png" alt="Employee form with monthly or daily pay" width="24%">
 </p>
 
 <img src="docs/screenshots/desktop-fr.png" alt="The same screen on a desktop monitor, three columns of employees">
@@ -25,9 +25,11 @@ It is a small, complete product, published in the open as an example of how Mesk
 
 ## What it does
 
-- **One-tap attendance.** Present, half day, late or absent. An absence takes a reason: unjustified, sick or authorised. Tapping the selected status again clears it.
+- **Everyone present in one tap.** On most days almost everyone is there. One button marks the whole crew present (or one team), and you correct the few exceptions. It can be undone, and it never overwrites someone already marked.
+- **One-tap attendance.** Present, half day, late or absent, in a single row of large buttons. An absence takes a reason: unjustified, sick or authorised. Tapping the selected status again clears it.
+- **The month at a glance.** For each employee: days worked, absences, overtime and the pay due, with the total for the month, in the application and not only in the Excel file.
 - **Day and night shifts**, each with its own records, and any past or future date.
-- **Overtime hours** per employee and per shift, with a stepper.
+- **Overtime hours** per employee and per shift: one "+1 h" button, which opens a stepper once there is overtime to adjust.
 - **The staff of a real site.** Chef concassage, chef matériel, accountant, electrician-operator, welder, loader, excavator and truck drivers, workers and guards. Any other post (fuel attendant, weighbridge agent, storekeeper) is entered with its own title, because no two sites are staffed alike.
 - **Two ways of being paid**, as on site:
   - *Monthly*: under contract. The salary is due for the month even when some days are missed, and overtime is payable.
@@ -73,8 +75,8 @@ Checks:
 ```bash
 npm run lint
 npm run typecheck
-npm test             # 68 unit tests
-npm run test:e2e     # 56 end-to-end tests, phone and desktop (after npm run build)
+npm test             # 75 unit tests
+npm run test:e2e     # 66 end-to-end tests, phone and desktop (after npm run build)
 npm run audit:layout # 12 widths x 5 languages, reports anything clipped (needs npm run preview)
 ```
 

@@ -23,9 +23,11 @@ Es un producto pequeño y completo, publicado en abierto como ejemplo de cómo t
 
 ## Qué hace
 
-- **Fichaje con un toque.** Presente, media jornada, retraso o ausente. Una ausencia lleva un motivo: injustificada, enfermedad o autorizada. Un segundo toque sobre el estado elegido lo borra.
+- **Todos presentes con un toque.** La mayoría de los días casi todos están. Un botón marca presente a toda la plantilla (o a un solo equipo) y se corrigen las pocas excepciones. Se puede deshacer y nunca sobrescribe a quien ya está fichado.
+- **Fichaje con un toque.** Presente, media jornada, retraso o ausente, en una sola fila de botones grandes. Una ausencia lleva un motivo: injustificada, enfermedad o autorizada. Un segundo toque sobre el estado elegido lo borra.
+- **El mes de un vistazo.** Por empleado: días trabajados, ausencias, horas extra y lo que se debe pagar, con el total del mes, en la aplicación y no solo en el archivo Excel.
 - **Turnos de día y de noche**, cada uno con sus fichajes, en cualquier fecha.
-- **Horas extra** por empleado y por turno.
+- **Horas extra** por empleado y por turno: un botón «+1 h» que abre un contador cuando hay horas que ajustar.
 - **La plantilla real de una planta.** Jefe de trituración, jefe de maquinaria, contable, electricista-operador, soldador, conductores de cargadora, excavadora y camión, obreros y vigilantes. Cualquier otro puesto (surtidor de gasóleo, agente de báscula, almacenero) se introduce con su propio nombre, porque no hay dos plantas con la misma plantilla.
 - **Dos formas de pago**, como en el terreno:
   - *Mensual*: con contrato. El salario se debe por el mes aunque falten días, y las horas extra se pagan.

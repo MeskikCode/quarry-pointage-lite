@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { asset } from "@/lib/env";
+import { FIELD_INK, asset } from "@/lib/env";
 import { I18nProvider } from "@/lib/i18n/provider";
 import "./globals.css";
 
@@ -24,8 +24,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Field ink: the browser chrome matches the status bar.
-  themeColor: "#050A14",
+  themeColor: FIELD_INK,
   colorScheme: "dark",
 };
 

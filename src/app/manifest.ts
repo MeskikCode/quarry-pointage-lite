@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { BASE_PATH, asset } from "@/lib/env";
+import { BASE_PATH, FIELD_INK, asset } from "@/lib/env";
 
 export const dynamic = "force-static";
 
@@ -16,9 +16,8 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "any",
     lang: "fr",
     dir: "auto",
-    // Field ink, from the design system.
-    background_color: "#050A14",
-    theme_color: "#050A14",
+    background_color: FIELD_INK,
+    theme_color: FIELD_INK,
     categories: ["business", "productivity"],
     icons: [
       { src: asset("/icons/icon-192.png"), sizes: "192x192", type: "image/png", purpose: "any" },

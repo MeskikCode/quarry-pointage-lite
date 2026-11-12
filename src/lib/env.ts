@@ -8,3 +8,8 @@ export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
 export function asset(path: string): string {
   return `${BASE_PATH}${path}`;
 }
+
+/** Field ink, the ground colour of the design system's field theme
+ * (--field-ink). Repeated here for the web manifest and the browser chrome,
+ * which cannot read a CSS variable. */
+export const FIELD_INK = "#050A14";

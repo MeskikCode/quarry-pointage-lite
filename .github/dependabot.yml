@@ -1,0 +1,24 @@
+# Weekly pull requests for outdated npm packages, monthly for GitHub Actions.
+# Every update must pass CI (lint, types, unit, build, end-to-end, accessibility
+# and layout audits) before it is merged.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      next-and-react:
+        patterns: ["next", "react", "react-dom", "eslint-config-next", "@types/react", "@types/react-dom"]
+      tests:
+        patterns: ["vitest", "@playwright/test", "@axe-core/playwright", "fake-indexeddb"]
+    ignore:
+      # Installed from its publisher's own distribution (cdn.sheetjs.com), used by the tests only.
+      - dependency-name: xlsx
+      # Pinned to the version the MeskikCode design system specifies.
+      - dependency-name: lucide-react
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

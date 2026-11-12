@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Custom software for your site
+    url: https://meskikcode.com
+    about: MeskikCode builds custom systems for industry, construction and healthcare. Contact us for work beyond this open edition.
+  - name: Report a security problem
+    url: https://github.com/MeskikCode/quarry-pointage-lite/security/policy
+    about: Please do not open a public issue for a security problem. See the security policy.

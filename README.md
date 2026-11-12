@@ -1,5 +1,10 @@
 # Pointage Carrière
 
+[![CI](https://github.com/MeskikCode/quarry-pointage-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/MeskikCode/quarry-pointage-lite/actions/workflows/ci.yml)
+[![Deploy](https://github.com/MeskikCode/quarry-pointage-lite/actions/workflows/pages.yml/badge.svg)](https://meskikcode.github.io/quarry-pointage-lite/)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-00BFFF.svg)](LICENSE)
+[![WCAG 2.1 AA, audited](https://img.shields.io/badge/WCAG%202.1-AA%20audited-0F172A.svg)](docs/system-design.md#accessibility)
+
 **Offline-first attendance for crushing and sand-washing sites.** One tap per employee on a phone, with or without signal, and one clean Excel file for payroll at the end of the month.
 
 [ⵜⴰⵎⴰⵣⵉⵖⵜ](README.zgh.md) · [العربية](README.ar.md) · [Français](README.fr.md) · **English** · [Español](README.es.md)

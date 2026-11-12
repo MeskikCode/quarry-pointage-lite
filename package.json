@@ -28,7 +28,8 @@
     "icons": "node scripts/gen-icons.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "audit:layout": "node scripts/audit-layout.mjs",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "social-preview": "node scripts/social-preview.mjs"
   },
   "dependencies": {
     "dexie": "4.4.7",
